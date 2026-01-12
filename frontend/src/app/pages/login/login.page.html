@@ -1,0 +1,85 @@
+<ion-content class="login-container">
+
+  <ion-card class="login-card">
+
+    <!-- Logo y Título -->
+    <div class="logo-container">
+      <div class="logo">
+        <ion-icon name="cube-outline"></ion-icon>
+      </div>
+      <h1 class="app-title">Sistema Logística</h1>
+      <p class="app-subtitle">Gestión Multi-Cliente</p>
+    </div>
+
+    <!-- Formulario -->
+    <div class="form-container">
+
+      <!-- Selector de Rol -->
+      <div class="role-selector">
+        <ion-segment [(ngModel)]="role">
+          <ion-segment-button value="ADMINISTRADOR">
+            <ion-label>Admin</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="PYME">
+            <ion-label>PYME</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="BODEGA">
+            <ion-label>Bodega</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="TRANSPORTISTA">
+            <ion-label>Transportista</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
+
+      <!-- Email -->
+      <ion-item lines="none">
+        <ion-icon slot="start" name="mail-outline"></ion-icon>
+        <ion-input
+          type="email"
+          placeholder="Correo electrónico"
+          [(ngModel)]="email">
+        </ion-input>
+      </ion-item>
+
+      <!-- Contraseña -->
+      <ion-item lines="none">
+        <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
+        <ion-input
+          type="password"
+          placeholder="Contraseña"
+          [(ngModel)]="password">
+        </ion-input>
+      </ion-item>
+
+      <!-- Botón Login -->
+      <ion-button expand="block" class="login-button" (click)="login()">
+        <ion-icon slot="start" name="log-in-outline"></ion-icon>
+        Iniciar Sesión
+      </ion-button>
+
+      <div class="forgot-password">
+        <a>¿Olvidaste tu contraseña?</a>
+      </div>
+
+    </div>
+
+    <!-- Features -->
+    <div class="features-list">
+      <div class="feature-item">
+        <ion-icon name="shield-checkmark"></ion-icon>
+        <span>Autenticación segura</span>
+      </div>
+      <div class="feature-item">
+        <ion-icon name="people"></ion-icon>
+        <span>Acceso basado en roles</span>
+      </div>
+      <div class="feature-item">
+        <ion-icon name="lock-closed"></ion-icon>
+        <span>Arquitectura multi-tenant</span>
+      </div>
+    </div>
+
+  </ion-card>
+
+</ion-content>
