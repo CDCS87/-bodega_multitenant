@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+
 import {
   IonContent,
   IonCard,
@@ -9,10 +10,8 @@ import {
   IonInput,
   IonButton,
   IonIcon,
-  IonLabel,
-  IonSegment,
-  IonSegmentButton
 } from '@ionic/angular/standalone';
+
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -22,23 +21,24 @@ import { AuthService } from '../../services/auth.service';
   styleUrls: ['./login.page.scss'],
   imports: [
     CommonModule,
-    FormsModule, // 👈 CLAVE
+    FormsModule,          // ✅ ngModel
     IonContent,
     IonCard,
     IonItem,
     IonInput,
     IonButton,
     IonIcon,
-    IonLabel,
-    IonSegment,
-    IonSegmentButton
-  ]
+  ],
 })
 export class LoginPage {
-
   email = '';
   password = '';
-  role = 'PYME';
+
+  // ✅ existe para el [(ngModel)]="role" del ion-segment
+  role: 'ADMINISTRADOR' | 'PYME' | 'BODEGA' | 'TRANSPORTISTA' = 'PYME';
+
+  loading = false;
+  error: string | null = null;
 
   constructor(
     private authService: AuthService,
@@ -46,16 +46,24 @@ export class LoginPage {
   ) {}
 
   login() {
+    this.loading = true;
+    this.error = null;
+
     this.authService.login(this.email, this.password).subscribe({
       next: () => {
+        this.loading = false;
         this.router.navigate(['/home'], { replaceUrl: true });
       },
-      error: () => {
-        alert('Credenciales inválidas');
+      error: (err) => {
+        console.error('Login error:', err);
+        this.loading = false;
+        this.error = 'Credenciales inválidas';
       }
     });
   }
 }
+
+
 
 
 

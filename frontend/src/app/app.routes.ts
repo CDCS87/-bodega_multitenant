@@ -30,4 +30,19 @@ export const routes: Routes = [
     redirectTo: 'home',
     pathMatch: 'full',
   },
+
+  {
+    path: 'pyme/retiros',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/pyme/retiros/retiros.page').then(m => m.RetirosPage),
+  },
+  {
+    path: 'pyme/retiros/crear',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/pyme/retiros/crear-retiro/crear-retiro.page').then(m => m.CrearRetiroPage),
+  }
+  
 ];
+

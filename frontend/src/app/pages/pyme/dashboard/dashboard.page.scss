@@ -1,0 +1,255 @@
+// Dashboard PYME Styles
+
+.dashboard-container,
+.inventario-container,
+.ordenes-container,
+.estadisticas-container {
+  padding: 16px;
+  padding-bottom: 80px; // Espacio para FAB
+}
+
+// Welcome Card
+.welcome-card {
+  background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
+  color: white;
+  margin-bottom: 16px;
+
+  ion-card-content {
+    padding: 24px;
+  }
+
+  .welcome-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .welcome-text {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.9;
+  }
+
+  .empresa-nombre {
+    margin: 8px 0 4px 0;
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  .codigo-pyme {
+    margin: 0;
+    font-size: 12px;
+    opacity: 0.8;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 12px;
+    border-radius: 12px;
+    display: inline-block;
+  }
+
+  .welcome-icon {
+    font-size: 64px;
+    opacity: 0.3;
+  }
+}
+
+// Metric Cards
+.metric-card {
+  margin-bottom: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  ion-card-content {
+    padding: 16px;
+  }
+
+  .metric-icon-container {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+
+    ion-icon {
+      font-size: 24px;
+    }
+  }
+
+  .metric-value {
+    margin: 0 0 4px 0;
+    font-size: 32px;
+    font-weight: bold;
+    color: var(--ion-color-dark);
+  }
+
+  .metric-label {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ion-color-medium);
+  }
+}
+
+// Volumen Card
+.volumen-card {
+  .volumen-info {
+    margin: 8px 0;
+
+    small {
+      color: var(--ion-color-medium);
+    }
+  }
+
+  ion-progress-bar {
+    margin-top: 8px;
+    height: 8px;
+    border-radius: 4px;
+  }
+}
+
+// Stock Info
+.stock-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+
+  ion-badge {
+    font-size: 16px;
+    padding: 8px 12px;
+  }
+
+  small {
+    font-size: 11px;
+    color: var(--ion-color-medium);
+  }
+}
+
+// Orden Actions
+.orden-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+// No Data Message
+.no-data {
+  text-align: center;
+  padding: 32px;
+  color: var(--ion-color-medium);
+  font-style: italic;
+}
+
+// Estadísticas
+.estadistica-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--ion-color-light);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  ion-icon {
+    font-size: 32px;
+  }
+
+  .estadistica-info {
+    h3 {
+      margin: 0 0 4px 0;
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--ion-color-dark);
+    }
+
+    p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--ion-color-medium);
+    }
+  }
+}
+
+// Volumen Chart
+.volumen-chart {
+  padding: 16px 0;
+
+  .chart-bar {
+    width: 100%;
+    height: 32px;
+    background: var(--ion-color-light);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .chart-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--ion-color-success) 0%, var(--ion-color-success-shade) 100%);
+    transition: width 0.3s ease;
+
+    &.warning {
+      background: linear-gradient(90deg, var(--ion-color-warning) 0%, var(--ion-color-warning-shade) 100%);
+    }
+
+    &.danger {
+      background: linear-gradient(90deg, var(--ion-color-danger) 0%, var(--ion-color-danger-shade) 100%);
+    }
+  }
+
+  .chart-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--ion-color-medium);
+  }
+}
+
+// Evidencia Container
+.evidencia-container {
+  padding: 16px;
+
+  img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+
+  ion-card {
+    margin-top: 16px;
+  }
+}
+
+// Responsive adjustments
+@media (min-width: 768px) {
+  .dashboard-container,
+  .inventario-container,
+  .ordenes-container,
+  .estadisticas-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .metric-card {
+    .metric-value {
+      font-size: 36px;
+    }
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .welcome-card {
+    .codigo-pyme {
+      background: rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  .metric-card {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+}

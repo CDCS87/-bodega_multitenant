@@ -2,52 +2,58 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const User = sequelize.define('User', {
-  id: { 
-    type: DataTypes.INTEGER, 
-    primaryKey: true, 
-    autoIncrement: true 
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
   },
-  email: { 
-    type: DataTypes.STRING, 
-    unique: true, 
+
+  email: {
+    type: DataTypes.STRING(255),
     allowNull: false,
-    validate: { isEmail: true } // Validación extra de seguridad
+    unique: true
   },
-  password_hash: { 
-    type: DataTypes.STRING, 
-    allowNull: false 
+
+  password_hash: {
+    type: DataTypes.STRING(255),
+    allowNull: false
   },
-  nombre_completo: { 
-    type: DataTypes.STRING, 
-    allowNull: false 
+
+  nombre_completo: {
+    type: DataTypes.STRING(255),
+    allowNull: true
   },
-  telefono: { 
-    type: DataTypes.STRING(20), 
-    allowNull: true 
+
+  telefono: {
+    type: DataTypes.STRING(20),
+    allowNull: true
   },
-  rol: { 
-    type: DataTypes.ENUM('ADMINISTRADOR', 'PYME', 'BODEGA', 'TRANSPORTISTA'), //ENUM + SEQUELIZE para evitar inyeccion SQL
-    allowNull: false 
+
+  rol: {
+    type: DataTypes.STRING(50),
+    allowNull: false
   },
-  activo: { 
-    type: DataTypes.BOOLEAN, 
-    defaultValue: true 
+
+  pyme_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true
   },
-  fecha_creacion: { 
-    type: DataTypes.DATE, 
-    defaultValue: DataTypes.NOW 
+
+  activo: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true
   },
-  pyme_id: { 
-    type: DataTypes.INTEGER, 
-    allowNull: true,
-    references: {
-      model: 'pymes', // Nombre de la tabla en MER
-      key: 'id'
-    }
+
+  fecha_creacion: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
   }
+
 }, {
-  tableName: 'usuarios', 
-  timestamps: false      
+  tableName: 'usuarios',
+  timestamps: false   
 });
 
 module.exports = User;
+
+
