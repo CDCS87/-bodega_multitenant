@@ -1,0 +1,81 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Crear Producto</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-item>
+    <ion-label position="stacked">Nombre *</ion-label>
+    <ion-input [(ngModel)]="nombre" [disabled]="saving"></ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">SKU (opcional)</ion-label>
+    <ion-input [(ngModel)]="sku" [disabled]="saving"></ion-input>
+  </ion-item>
+
+  <!-- ✅ TEXT en BD -->
+  <ion-item>
+    <ion-label position="stacked">Descripción (opcional)</ion-label>
+    <ion-input [(ngModel)]="descripcionTexto" [disabled]="saving"></ion-input>
+  </ion-item>
+
+  <!-- ✅ JSONB en BD: caracteristicas_especificas -->
+  <h3 class="mt">Características específicas (JSONB)</h3>
+  <ion-text class="hint">
+    Agrega campos clave/valor (ej: marca=ACME, color=Rojo).
+  </ion-text>
+
+  <ion-list>
+    <ion-item *ngFor="let row of kv; let i = index">
+      <ion-input
+        placeholder="clave"
+        [(ngModel)]="row.key"
+        class="key"
+        [disabled]="saving"
+      ></ion-input>
+
+      <ion-input
+        placeholder="valor"
+        [(ngModel)]="row.value"
+        [disabled]="saving"
+      ></ion-input>
+
+      <ion-button
+        fill="clear"
+        color="danger"
+        (click)="removeKV(i)"
+        [disabled]="saving"
+      >
+        Quitar
+      </ion-button>
+    </ion-item>
+  </ion-list>
+
+  <ion-button
+    expand="block"
+    fill="outline"
+    (click)="addKV()"
+    [disabled]="saving"
+  >
+    + Agregar campo
+  </ion-button>
+
+  <ion-text *ngIf="errorMsg" color="danger">
+    <p class="error">{{ errorMsg }}</p>
+  </ion-text>
+
+  <div class="actions">
+    <ion-button expand="block" fill="outline" (click)="close()" [disabled]="saving">
+      Cancelar
+    </ion-button>
+
+    <ion-button expand="block" (click)="save()" [disabled]="saving || !nombre.trim()">
+      {{ saving ? 'Guardando...' : 'Guardar' }}
+    </ion-button>
+  </div>
+
+</ion-content>
+

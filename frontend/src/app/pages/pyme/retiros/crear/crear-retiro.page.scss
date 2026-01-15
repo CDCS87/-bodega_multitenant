@@ -1,0 +1,23 @@
+.search-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.searchbar {
+  flex: 1;
+}
+
+.section {
+  margin-top: 16px;
+}
+
+.qty {
+  max-width: 110px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}

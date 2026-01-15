@@ -3,12 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ModalController } from '@ionic/angular';
+
 import {
   IonContent, IonHeader, IonTitle, IonToolbar, IonButton,
   IonSearchbar, IonList, IonItem, IonLabel, IonInput, IonText
 } from '@ionic/angular/standalone';
-import { Product, ProductService } from '../../../services/product.service';
-import { CrearProductoModalComponent } from '../components/crear-producto-modal/crear-producto-modal.component';
+
+import { Product, ProductService } from '../../../../services/product.service';
+import {ProductoModalComponent } from '../../../../components/producto-modal.component';
 
 type DraftItem = { productId: number; sku: string; nombre: string; cantidad: number; };
 
@@ -20,69 +22,8 @@ type DraftItem = { productId: number; sku: string; nombre: string; cantidad: num
     IonContent, IonHeader, IonTitle, IonToolbar, IonButton,
     IonSearchbar, IonList, IonItem, IonLabel, IonInput, IonText
   ],
-  template: `
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>Crear Retiro</ion-title>
-      </ion-toolbar>
-    </ion-header>
-
-    <ion-content class="ion-padding">
-      <div style="display:flex; gap:8px; align-items:center;">
-        <ion-searchbar
-          placeholder="Buscar producto por nombre o SKU"
-          [(ngModel)]="q"
-          (ionInput)="applyFilter()"
-          style="flex:1;"
-        ></ion-searchbar>
-
-        <ion-button (click)="openCreateProduct()">+ Crear</ion-button>
-      </div>
-
-      <ion-text *ngIf="loading">Cargando productos...</ion-text>
-
-      <ion-list *ngIf="!loading">
-        <ion-item *ngFor="let p of filtered" button (click)="addItem(p)">
-          <ion-label>
-            <h2>{{ p.nombre }}</h2>
-            <p>SKU: {{ p.sku }}</p>
-          </ion-label>
-        </ion-item>
-      </ion-list>
-
-      <div style="margin-top:16px;">
-        <h3>Productos a enviar</h3>
-
-        <ion-text *ngIf="items.length === 0">
-          Aún no agregas productos.
-        </ion-text>
-
-        <ion-list>
-          <ion-item *ngFor="let it of items; let i = index">
-            <ion-label>
-              <h2>{{ it.nombre }}</h2>
-              <p>{{ it.sku }}</p>
-            </ion-label>
-
-            <ion-input
-              type="number"
-              inputmode="numeric"
-              min="1"
-              [(ngModel)]="it.cantidad"
-              placeholder="Cantidad"
-              style="max-width:110px;"
-            ></ion-input>
-
-            <ion-button fill="clear" color="danger" (click)="remove(i)">Quitar</ion-button>
-          </ion-item>
-        </ion-list>
-
-        <ion-button expand="block" [disabled]="!canSave()" (click)="saveDraft()">
-          Guardar retiro (draft)
-        </ion-button>
-      </div>
-    </ion-content>
-  `
+  templateUrl: './crear-retiro.page.html',
+  styleUrls: ['./crear-retiro.page.scss'],
 })
 export class CrearRetiroPage implements OnInit {
   q = '';
@@ -99,7 +40,7 @@ export class CrearRetiroPage implements OnInit {
     private router: Router
   ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadProducts();
   }
 
@@ -149,14 +90,14 @@ export class CrearRetiroPage implements OnInit {
 
   async openCreateProduct() {
     const modal = await this.modalCtrl.create({
-      component: CrearProductoModalComponent
+      component: ProductoModalComponent
     });
 
     await modal.present();
     const { data } = await modal.onWillDismiss<{ created?: Product }>();
 
     if (data?.created) {
-      // agregar al catálogo local y seleccionar automáticamente
+      // Lo metemos arriba y lo dejamos seleccionable inmediatamente
       this.products = [data.created, ...this.products];
       this.applyFilter();
       this.addItem(data.created);
@@ -164,7 +105,7 @@ export class CrearRetiroPage implements OnInit {
   }
 
   saveDraft() {
-    // por ahora solo guardamos draft local (más adelante POST /api/pickups)
+    // Por ahora: draft local. Luego será POST /api/pickups
     const draft = {
       createdAt: new Date().toISOString(),
       items: this.items
@@ -172,4 +113,9 @@ export class CrearRetiroPage implements OnInit {
     localStorage.setItem('pyme_pickup_draft', JSON.stringify(draft));
     this.router.navigate(['/pyme/retiros'], { replaceUrl: true });
   }
+
+  cancel() {
+    this.router.navigate(['/pyme/retiros'], { replaceUrl: true });
+  }
 }
+

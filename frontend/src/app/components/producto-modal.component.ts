@@ -2,60 +2,35 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonLabel, IonInput, IonButton, IonList } from '@ionic/angular/standalone';
-import { Product, ProductService } from '../../../../services/product.service';
+import {
+  IonHeader, IonToolbar, IonTitle, IonContent,
+  IonItem, IonLabel, IonInput, IonButton, IonList, IonText
+} from '@ionic/angular/standalone';
+
+import { Product, ProductService } from '../services/product.service';
 
 type KV = { key: string; value: string };
 
 @Component({
-  selector: 'app-crear-producto-modal',
+  selector: 'app-producto-modal',
   standalone: true,
   imports: [
     CommonModule, FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent,
-    IonItem, IonLabel, IonInput, IonButton, IonList
+    IonItem, IonLabel, IonInput, IonButton, IonList, IonText
   ],
-  template: `
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>Crear Producto</ion-title>
-      </ion-toolbar>
-    </ion-header>
-
-    <ion-content class="ion-padding">
-      <ion-item>
-        <ion-label position="stacked">Nombre</ion-label>
-        <ion-input [(ngModel)]="nombre"></ion-input>
-      </ion-item>
-
-      <ion-item>
-        <ion-label position="stacked">SKU (opcional)</ion-label>
-        <ion-input [(ngModel)]="sku"></ion-input>
-      </ion-item>
-
-      <h3 style="margin-top:16px;">Descripción (JSONB)</h3>
-      <ion-list>
-        <ion-item *ngFor="let row of kv; let i=index">
-          <ion-input placeholder="clave" [(ngModel)]="row.key" style="max-width:40%;"></ion-input>
-          <ion-input placeholder="valor" [(ngModel)]="row.value"></ion-input>
-          <ion-button fill="clear" color="danger" (click)="removeKV(i)">Quitar</ion-button>
-        </ion-item>
-      </ion-list>
-
-      <ion-button expand="block" fill="outline" (click)="addKV()">+ Agregar campo</ion-button>
-
-      <div style="display:flex; gap:8px; margin-top:16px;">
-        <ion-button expand="block" fill="outline" (click)="close()">Cancelar</ion-button>
-        <ion-button expand="block" [disabled]="saving || !nombre.trim()" (click)="save()">Guardar</ion-button>
-      </div>
-    </ion-content>
-  `
+  templateUrl: './producto-modal.component.html',
+  styleUrls: ['./producto-modal.component.scss'],
 })
-export class CrearProductoModalComponent {
+export class ProductoModalComponent {
   nombre = '';
   sku = '';
+  descripcionTexto = ''; 
+
   kv: KV[] = [{ key: '', value: '' }];
+
   saving = false;
+  errorMsg = '';
 
   constructor(
     private modalCtrl: ModalController,
@@ -72,28 +47,85 @@ export class CrearProductoModalComponent {
   }
 
   close() {
+    if (this.saving) return;
     this.modalCtrl.dismiss();
   }
 
-  private buildDescripcion(): Record<string, any> {
+  // ✅ Devuelve null si no hay características válidas
+  private buildCaracteristicas(): Record<string, any> | null {
     const obj: Record<string, any> = {};
+    const usedKeys = new Set<string>();
+
     for (const row of this.kv) {
-      const k = row.key?.trim();
+      const k = (row.key ?? '').trim();
+      const v = (row.value ?? '').trim();
+
+      // si no hay key, ignorar fila
       if (!k) continue;
-      obj[k] = row.value;
+
+      // evitar claves duplicadas (case-insensitive)
+      const keyLower = k.toLowerCase();
+      if (usedKeys.has(keyLower)) {
+        throw new Error(`La clave "${k}" está duplicada.`);
+      }
+      usedKeys.add(keyLower);
+
+      // si el valor está vacío, lo guardamos como string vacío (o puedes decidir ignorar)
+      obj[k] = v;
     }
-    return obj;
+
+    return Object.keys(obj).length ? obj : null;
+  }
+
+  private validate(): { ok: boolean; message?: string } {
+    const nombre = this.nombre.trim();
+    if (!nombre) return { ok: false, message: 'El nombre es obligatorio.' };
+
+    // opcional: validar SKU si viene (no obligatorio)
+    if (this.sku.trim() && this.sku.trim().length < 3) {
+      return { ok: false, message: 'El SKU debe tener al menos 3 caracteres (o déjalo vacío).' };
+    }
+
+    // valida duplicados / estructura KV
+    try {
+      this.buildCaracteristicas();
+    } catch (e: any) {
+      return { ok: false, message: e?.message || 'Error en características.' };
+    }
+
+    return { ok: true };
   }
 
   save() {
+    if (this.saving) return;
+
+    this.errorMsg = '';
+
+    const v = this.validate();
+    if (!v.ok) {
+      this.errorMsg = v.message || 'Revisa los datos.';
+      return;
+    }
+
     this.saving = true;
+
+    let caracteristicas: Record<string, any> | null = null;
+    try {
+      caracteristicas = this.buildCaracteristicas();
+    } catch (e: any) {
+      this.saving = false;
+      this.errorMsg = e?.message || 'Error en características.';
+      return;
+    }
 
     const payload: any = {
       nombre: this.nombre.trim(),
-      descripcion: this.buildDescripcion()
+      // SQL: descripcion es TEXT
+      descripcion: this.descripcionTexto.trim() ? this.descripcionTexto.trim() : null,
+      // SQL: JSONB real
+      caracteristicas_especificas: caracteristicas
     };
 
-    // sku opcional: si backend no lo usa, lo ignorará o lo ajustamos después
     if (this.sku.trim()) payload.sku = this.sku.trim();
 
     this.productService.createProduct(payload).subscribe({
@@ -101,9 +133,12 @@ export class CrearProductoModalComponent {
         this.saving = false;
         this.modalCtrl.dismiss({ created });
       },
-      error: () => {
+      error: (err) => {
         this.saving = false;
+        this.errorMsg = err?.error?.message || 'No se pudo crear el producto';
       }
     });
   }
 }
+
+

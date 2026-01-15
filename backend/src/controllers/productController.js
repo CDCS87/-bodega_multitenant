@@ -24,21 +24,22 @@ exports.getProducts = async (req, res) => {
         order: [['nombre', 'ASC']],
         attributes: [
           'id',
+          'pyme_id',
           'sku',
           'nombre',
           'descripcion',
+          'codigo_barras',
           'tiene_codigo_original',
-          'codigo_original',
           'caracteristicas_especificas',
-          'precio_unitario',
           'cantidad_disponible',
           'cantidad_reservada',
-          'stock_minimo',
+          'unidad_medida',
           'ubicacion_id',
-          'imagen_url',
+          'fecha_vencimiento',
+          'lote',
+          'alerta_stock_bajo',
           'activo',
-          'created_at',
-          'updated_at'
+          'fecha_registro'
         ]
       });
 
@@ -165,29 +166,25 @@ exports.getProductById = async (req, res) => {
   }
 };
 
-/**
- * ➕ CREAR PRODUCTO (solo PYME y ADMINISTRADOR)
- * RF3: Gestión diferenciada de productos
- */
+// ➕ CREAR PRODUCTO (solo PYME y ADMINISTRADOR)
 exports.createProduct = async (req, res) => {
   try {
     const {
       nombre,
       descripcion,
+      codigo_barras,
       tiene_codigo_original,
-      codigo_original,
       caracteristicas_especificas,
-      precio_unitario,
-      cantidad_disponible,
-      stock_minimo,
-      ubicacion_id
+      unidad_medida,
+      alerta_stock_bajo,
+      fecha_vencimiento,
+      lote
     } = req.body;
 
-    // Validaciones básicas
-    if (!nombre || precio_unitario === undefined || cantidad_disponible === undefined) {
-      return res.status(400).json({ 
+    if (!nombre || String(nombre).trim().length === 0) {
+      return res.status(400).json({
         success: false,
-        message: 'Campos obligatorios: nombre, precio_unitario, cantidad_disponible' 
+        message: 'Campo obligatorio: nombre'
       });
     }
 
@@ -195,53 +192,56 @@ exports.createProduct = async (req, res) => {
     let pyme_id;
     if (req.user.rol === 'PYME') {
       pyme_id = req.user.pyme_id;
+      if (!pyme_id) {
+        return res.status(403).json({
+          success: false,
+          message: 'Usuario PYME sin empresa asignada'
+        });
+      }
     } else if (req.user.rol === 'ADMINISTRADOR') {
       pyme_id = req.body.pyme_id;
       if (!pyme_id) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: 'El administrador debe especificar pyme_id' 
+          message: 'El administrador debe especificar pyme_id'
         });
       }
     } else {
-      return res.status(403).json({ 
+      return res.status(403).json({
         success: false,
-        message: 'Su rol no tiene permisos para crear productos' 
+        message: 'Su rol no tiene permisos para crear productos'
       });
     }
 
-    // Generar SKU automático si no tiene código original
+    // Generar SKU
     let sku;
-    if (tiene_codigo_original && codigo_original) {
-      sku = codigo_original;
+    if (tiene_codigo_original && codigo_barras) {
+      sku = String(codigo_barras).trim();
+    } else if (req.body.sku) {
+      sku = String(req.body.sku).trim();
     } else {
-      // RF3: Generar SKU automático PYME{ID}-AUTO-{NUM}
-      const Pyme = require('../models/Pyme');
-      const pyme = await Pyme.findByPk(pyme_id);
-      
-      const ultimoProducto = await Product.findOne({
+      const last = await Product.findOne({
         where: { pyme_id },
         order: [['id', 'DESC']]
       });
-
-      const numero = ultimoProducto ? ultimoProducto.id + 1 : 1;
-      sku = `${pyme.codigo_pyme}-AUTO-${String(numero).padStart(5, '0')}`;
+      const nextNum = last ? last.id + 1 : 1;
+      sku = `PYME${pyme_id}-SKU-${String(nextNum).padStart(6, '0')}`;
     }
 
-    // Crear producto
     const nuevoProducto = await Product.create({
       pyme_id,
       sku,
-      nombre,
-      descripcion: descripcion || null,
-      tiene_codigo_original: tiene_codigo_original || false,
-      codigo_original: codigo_original || null,
-      caracteristicas_especificas: caracteristicas_especificas || {},
-      precio_unitario,
-      cantidad_disponible,
+      nombre: String(nombre).trim(),
+      descripcion: descripcion ?? null,
+      codigo_barras: codigo_barras ?? null,
+      tiene_codigo_original: !!tiene_codigo_original,
+      caracteristicas_especificas: caracteristicas_especificas ?? null,
+      cantidad_disponible: 0,
       cantidad_reservada: 0,
-      stock_minimo: stock_minimo || 0,
-      ubicacion_id: ubicacion_id || null,
+      unidad_medida: unidad_medida ?? 'unidad',
+      fecha_vencimiento: fecha_vencimiento ?? null,
+      lote: lote ?? null,
+      alerta_stock_bajo: alerta_stock_bajo ?? 10,
       activo: true
     });
 
@@ -253,10 +253,10 @@ exports.createProduct = async (req, res) => {
 
   } catch (error) {
     console.error('❌ Error al crear producto:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       success: false,
       message: 'Error al crear producto',
-      details: error.message 
+      details: error.message
     });
   }
 };
