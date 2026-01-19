@@ -2,6 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 
 export type DespachoListItem = {
   id: number;
@@ -54,29 +55,37 @@ export type PrepararPayload = {
 
 @Injectable({ providedIn: 'root' })
 export class DespachoService {
-  private readonly API_URL = 'http://localhost:3000/api/despachos';
+  private readonly API_URL = `${environment.apiUrl}/api/despachos`;
+
   constructor(private http: HttpClient) {}
 
   getDespachos() {
-    return this.http.get<any>(this.API_URL).pipe(map(r => r.ordenes as DespachoListItem[]));
+    return this.http
+      .get<any>(this.API_URL)
+      .pipe(map(r => r.ordenes as DespachoListItem[]));
   }
 
   getDespachoById(id: number) {
-    return this.http.get<any>(`${this.API_URL}/${id}`).pipe(map(r => r.orden as DespachoDetalle));
+    return this.http
+      .get<any>(`${this.API_URL}/${id}`)
+      .pipe(map(r => r.orden as DespachoDetalle));
   }
 
   scanDespacho(codigoOrQr: string) {
     const safe = encodeURIComponent(codigoOrQr.trim());
-    return this.http.get<any>(`${this.API_URL}/scan/${safe}`).pipe(map(r => r.orden as DespachoDetalle));
+    return this.http
+      .get<any>(`${this.API_URL}/scan/${safe}`)
+      .pipe(map(r => r.orden as DespachoDetalle));
   }
 
   iniciarPicking(id: number) {
-    return this.http.put<any>(`${this.API_URL}/${id}/picking`, {}).pipe(map(r => r));
+    return this.http.put<any>(`${this.API_URL}/${id}/picking`, {});
   }
 
   confirmarPreparado(id: number, payload: PrepararPayload) {
-    return this.http.put<any>(`${this.API_URL}/${id}/preparar`, payload).pipe(map(r => r));
+    return this.http.put<any>(`${this.API_URL}/${id}/preparar`, payload);
   }
 }
+
 
 
