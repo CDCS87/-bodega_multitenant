@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { map } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 
 export type RetiroItemCreate = {
   producto_id: number;
@@ -18,7 +19,8 @@ export type RetiroCreatePayload = {
 
 @Injectable({ providedIn: 'root' })
 export class RetiroService {
-  private readonly API_URL = 'http://localhost:3000/api/retiros';
+  private readonly API_URL = `${environment.apiUrl}/api/retiros`;
+
   constructor(private http: HttpClient) {}
 
   createRetiro(payload: RetiroCreatePayload) {
@@ -32,7 +34,9 @@ export class RetiroService {
     if (filters?.hasta) params = params.set('hasta', filters.hasta);
     if (filters?.q) params = params.set('q', filters.q);
 
-    return this.http.get<any>(this.API_URL, { params }).pipe(map(r => r.ordenes ?? r.retiros ?? r.data ?? []));
+    return this.http
+      .get<any>(this.API_URL, { params })
+      .pipe(map(r => r.ordenes ?? r.retiros ?? r.data ?? []));
   }
 
   getRetiroById(id: number) {
@@ -40,27 +44,26 @@ export class RetiroService {
   }
 
   scanRetiro(codigo: string) {
-  return this.http
-    .get<any>(`${this.API_URL}/scan/${encodeURIComponent(codigo)}`)
-    .pipe(map(r => r.orden));
+    return this.http
+      .get<any>(`${this.API_URL}/scan/${encodeURIComponent(codigo)}`)
+      .pipe(map(r => r.orden));
+  }
+
+  getPendientesBodega() {
+    return this.http.get<any>(this.API_URL).pipe(map(r => r.ordenes));
+  }
+
+  confirmarIngresoBodega(
+    id: number,
+    items: { detalle_id: number; cantidad_recibida: number }[],
+    fotos: File[] = []
+  ) {
+    const form = new FormData();
+    form.append('items', JSON.stringify(items));
+    fotos.forEach(f => form.append('fotos', f));
+    return this.http.put<any>(`${this.API_URL}/${id}/ingresar`, form);
+  }
 }
 
-getPendientesBodega() {
-  // para rol BODEGA tu backend devuelve estado RETIRADO
-  return this.http.get<any>(this.API_URL).pipe(map(r => r.ordenes));
-}
-
-confirmarIngresoBodega(
-  id: number,
-  items: { detalle_id: number; cantidad_recibida: number }[],
-  fotos: File[] = []
-) {
-  const form = new FormData();
-  form.append('items', JSON.stringify(items));
-  fotos.forEach(f => form.append('fotos', f));
-  return this.http.put<any>(`${this.API_URL}/${id}/ingresar`, form);
-}
-
-}
 
 
