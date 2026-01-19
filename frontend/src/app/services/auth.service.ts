@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, BehaviorSubject, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-import { environment } from 'src/environments/environment.prod';
+import { environment } from 'src/environments/environment';
 
 interface LoginResponse {
   success: boolean;
@@ -29,7 +29,7 @@ interface RefreshResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly API_URL = `${environment.apiUrl}/auth`;
+  private readonly API_URL = `${environment.apiUrl}/api/auth`;
   private readonly ACCESS_TOKEN_KEY = 'accessToken';
   private readonly REFRESH_TOKEN_KEY = 'refreshToken';
   private readonly USER_KEY = 'user';
