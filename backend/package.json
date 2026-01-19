@@ -1,9 +1,9 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "app.js",
+  "main": "src/app.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "node src/app.js"
   },
   "dependencies": {
     "@capacitor-mlkit/barcode-scanning": "^8.0.0",
@@ -17,3 +17,4 @@
     "sequelize": "^6.37.7"
   }
 }
+
