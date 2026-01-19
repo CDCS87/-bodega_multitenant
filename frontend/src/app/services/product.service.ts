@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
+import { environment } from 'src/environments/environment';
 
 export interface Product {
   id: number;
@@ -25,7 +26,7 @@ export interface Product {
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
-  private readonly API_URL = 'http://localhost:3000/api/products';
+  private readonly API_URL = `${environment.apiUrl}/api/products`;
   constructor(private http: HttpClient) {}
 
   getProducts() {
