@@ -27,7 +27,7 @@ export class HomePage implements OnInit {
   ) {}
 
   ngOnInit() {
-    // ✅ empieza a contar inactividad al entrar logueado
+    // empieza a contar inactividad al entrar logueado
     this.idle.start();
 
     this.redirectBasedOnRole();
@@ -44,10 +44,10 @@ export class HomePage implements OnInit {
         this.router.navigate(['/admin/dashboard'], { replaceUrl: true });
         break;
       case 'BODEGA':
-        this.router.navigate(['/bodega/picking'], { replaceUrl: true });
+        this.router.navigate(['/bodega/recepcion'], { replaceUrl: true });
         break;
       case 'TRANSPORTISTA':
-        this.router.navigate(['/transportista/rutas'], { replaceUrl: true });
+        this.router.navigate(['/transporte/dashboard'], { replaceUrl: true });
         break;
       default:
         this.authService.logout();

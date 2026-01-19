@@ -1,0 +1,26 @@
+/* frontend/src/app/pages/bodega/picking/picking.page.scss */
+
+.actions-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.code-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.estado-badge {
+  margin-left: 8px;
+  flex: 0 0 auto;
+}
+
+ion-spinner {
+  display: block;
+  margin: 16px auto;
+}

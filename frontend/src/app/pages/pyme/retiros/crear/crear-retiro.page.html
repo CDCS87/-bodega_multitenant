@@ -1,64 +1,101 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Crear Retiro</ion-title>
+    <ion-title>Nueva orden de retiro</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <div class="search-row">
-    <ion-searchbar
-      placeholder="Buscar producto por nombre o SKU"
-      [(ngModel)]="q"
-      (ionInput)="applyFilter()"
-      class="searchbar"
-    ></ion-searchbar>
 
-    <ion-button (click)="openCreateProduct()">+ Crear</ion-button>
+  <ion-item>
+    <ion-label position="stacked">Dirección de retiro *</ion-label>
+    <ion-input [(ngModel)]="direccion_retiro" [disabled]="saving"></ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">Comuna *</ion-label>
+    <ion-input [(ngModel)]="comuna" [disabled]="saving"></ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">Fecha solicitada *</ion-label>
+    <ion-input type="date" [(ngModel)]="fecha_solicitada" [disabled]="saving"></ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">Observaciones (opcional)</ion-label>
+    <ion-textarea [(ngModel)]="observaciones" [disabled]="saving"></ion-textarea>
+  </ion-item>
+
+  <h3 class="mt">Productos</h3>
+
+  <ion-item>
+    <ion-label position="stacked">Seleccionar producto</ion-label>
+
+    <div *ngIf="loadingProducts" class="loading-products">
+      <ion-spinner></ion-spinner>
+      <ion-text> Cargando productos...</ion-text>
+    </div>
+
+    <ion-select
+      *ngIf="!loadingProducts"
+      placeholder="Elige un producto"
+      [(ngModel)]="selectedProductId"
+      [disabled]="saving"
+    >
+      <ion-select-option *ngFor="let p of products" [value]="p.id">
+        {{ p.nombre }} ({{ p.sku }})
+      </ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <div class="row">
+    <ion-button expand="block" fill="outline" (click)="openCreateProductModal()" [disabled]="saving">
+      + Crear producto
+    </ion-button>
+
+    <ion-button expand="block" (click)="addSelectedProduct()" [disabled]="saving || !selectedProductId">
+      Agregar
+    </ion-button>
   </div>
 
-  <ion-text *ngIf="loading">Cargando productos...</ion-text>
+  <ion-list *ngIf="items.length > 0">
+    <ion-item *ngFor="let it of items; let i = index">
+      <div class="itemRow">
+        <div class="left">
+          <strong>{{ it.producto.nombre }}</strong>
+          <div class="muted">{{ it.producto.sku }}</div>
+        </div>
 
-  <ion-list *ngIf="!loading">
-    <ion-item *ngFor="let p of filtered" button (click)="addItem(p)">
-      <ion-label>
-        <h2>{{ p.nombre }}</h2>
-        <p>SKU: {{ p.sku }}</p>
-      </ion-label>
+        <div class="right">
+          <ion-input
+            type="number"
+            min="1"
+            [(ngModel)]="it.cantidad_esperada"
+            [disabled]="saving"
+          ></ion-input>
+
+          <ion-button fill="clear" color="danger" (click)="removeItem(i)" [disabled]="saving">
+            Quitar
+          </ion-button>
+        </div>
+      </div>
+    </ion-item>
+
+    <ion-item *ngFor="let it of items">
+      <ion-label position="stacked">Observación (opcional) - {{ it.producto.nombre }}</ion-label>
+      <ion-input [(ngModel)]="it.observaciones" [disabled]="saving"></ion-input>
     </ion-item>
   </ion-list>
 
-  <div class="section">
-    <h3>Productos a enviar</h3>
+  <ion-text *ngIf="errorMsg" color="danger">
+    <p class="error">{{ errorMsg }}</p>
+  </ion-text>
 
-    <ion-text *ngIf="items.length === 0">
-      Aún no agregas productos.
-    </ion-text>
-
-    <ion-list>
-      <ion-item *ngFor="let it of items; let i = index">
-        <ion-label>
-          <h2>{{ it.nombre }}</h2>
-          <p>{{ it.sku }}</p>
-        </ion-label>
-
-        <ion-input
-          type="number"
-          inputmode="numeric"
-          min="1"
-          [(ngModel)]="it.cantidad"
-          placeholder="Cantidad"
-          class="qty"
-        ></ion-input>
-
-        <ion-button fill="clear" color="danger" (click)="remove(i)">Quitar</ion-button>
-      </ion-item>
-    </ion-list>
-
-    <div class="actions">
-      <ion-button expand="block" fill="outline" (click)="cancel()">Cancelar</ion-button>
-      <ion-button expand="block" [disabled]="!canSave()" (click)="saveDraft()">
-        Guardar retiro (draft)
-      </ion-button>
-    </div>
+  <div class="actions">
+    <ion-button expand="block" (click)="submit()" [disabled]="saving">
+      {{ saving ? 'Creando...' : 'Crear retiro' }}
+    </ion-button>
   </div>
+
 </ion-content>
+

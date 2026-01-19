@@ -1,0 +1,226 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/picking"></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>Picking detalle</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="scanItem()">
+        <ion-icon slot="icon-only" name="scan-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  @if (detalle(); as d) {
+    <div class="subheader">
+      <div class="row">
+        <ion-chip [color]="estadoColor(d.estado)">
+          <ion-label>{{ d.estado }}</ion-label>
+        </ion-chip>
+
+        @if (d.codigo) {
+          <ion-badge color="light" class="code">#{{ d.codigo }}</ion-badge>
+        }
+      </div>
+
+      <ion-progress-bar [value]="progreso()"></ion-progress-bar>
+
+      <div class="meta">
+        <span>{{ totalPickeado() }} / {{ totalRequerido() }} unidades</span>
+        <span>{{ (progreso() * 100) | number:'1.0-0' }}%</span>
+      </div>
+    </div>
+  }
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="cargarDetalle($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Loading skeleton -->
+  <div class="skeleton" *ngIf="loading()">
+    <ion-card>
+      <ion-card-header>
+        <ion-skeleton-text [animated]="true" class="skeleton-header-title"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" class="skeleton-header-subtitle"></ion-skeleton-text>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-skeleton-text [animated]="true" class="skeleton-content-full"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" class="skeleton-content-wide"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" class="skeleton-content-wider"></ion-skeleton-text>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card *ngFor="let _ of [1,2,3]">
+      <ion-card-content>
+        <ion-skeleton-text [animated]="true" class="skeleton-item-title"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" class="skeleton-item-subtitle"></ion-skeleton-text>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <ng-container *ngIf="!loading() && detalle() as d">
+    <ion-card class="info">
+      <ion-card-header>
+        <ion-card-title>Información</ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <div class="grid">
+          <div class="kv">
+            <div class="k">Bodega</div>
+            <div class="v">{{ d.bodega || '—' }}</div>
+          </div>
+          <div class="kv">
+            <div class="k">Destino</div>
+            <div class="v">{{ d.destino || '—' }}</div>
+          </div>
+          <div class="kv">
+            <div class="k">PYME</div>
+            <div class="v">{{ d.pymeNombre || '—' }}</div>
+          </div>
+          <div class="kv">
+            <div class="k">Creado</div>
+            <div class="v">{{ d.createdAt ? (d.createdAt | date:'dd/MM/yyyy HH:mm') : '—' }}</div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <ion-button
+            expand="block"
+            [disabled]="d.estado !== 'PENDIENTE'"
+            (click)="iniciarPicking()"
+          >
+            <ion-icon slot="start" name="play-outline"></ion-icon>
+            Iniciar
+          </ion-button>
+
+          <ion-button
+            expand="block"
+            fill="outline"
+            [disabled]="d.estado === 'FINALIZADO' || saving()"
+            (click)="guardarBorrador()"
+          >
+            <ion-icon slot="start" name="save-outline"></ion-icon>
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="items">
+      <ion-card-header>
+        <ion-card-title>Ítems</ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <ion-list lines="full">
+          <ion-item *ngFor="let it of d.items" class="item-row" [class.done]="it.ok">
+            <ion-checkbox
+              slot="start"
+              [checked]="it.ok"
+              [disabled]="d.estado === 'FINALIZADO'"
+              (ionChange)="setPickQty(it, it.ok ? 0 : it.cantidadRequerida)"
+            ></ion-checkbox>
+
+            <ion-label>
+              <div class="title">
+                <span class="name">{{ it.nombre }}</span>
+                <ion-chip color="light" class="mini" *ngIf="it.sku">
+                  <ion-icon name="cube-outline"></ion-icon>
+                  <ion-label>{{ it.sku }}</ion-label>
+                </ion-chip>
+              </div>
+
+              <div class="sub">
+                <span *ngIf="it.ubicacion">📍 {{ it.ubicacion }}</span>
+                <span *ngIf="it.lote">• Lote {{ it.lote }}</span>
+                <span *ngIf="it.vencimiento">• Vence {{ it.vencimiento | date:'MM/yyyy' }}</span>
+              </div>
+
+              <div class="qty">
+                <span class="req">Req: <b>{{ it.cantidadRequerida }}</b></span>
+                <span class="pick">Pick: <b>{{ it.cantidadPickeada }}</b></span>
+                <span class="warn" *ngIf="it.cantidadPickeada < it.cantidadRequerida">
+                  <ion-icon name="warning-outline"></ion-icon> Falta
+                </span>
+              </div>
+
+              <div class="obs" *ngIf="it.observacion">
+                <ion-note color="medium">{{ it.observacion }}</ion-note>
+              </div>
+
+              <div class="row-actions">
+                <ion-button size="small" fill="clear" [disabled]="d.estado === 'FINALIZADO'" (click)="dec(it)">-</ion-button>
+
+                <ion-input
+                  type="number"
+                  class="qty-input"
+                  [disabled]="d.estado === 'FINALIZADO'"
+                  [value]="it.cantidadPickeada"
+                  (ionInput)="setPickQty(it, $any($event.target).value)"
+                ></ion-input>
+
+                <ion-button size="small" fill="clear" [disabled]="d.estado === 'FINALIZADO'" (click)="inc(it)">+</ion-button>
+
+                <span class="spacer"></span>
+
+                <ion-button
+                  size="small"
+                  fill="outline"
+                  [disabled]="d.estado === 'FINALIZADO'"
+                  (click)="scanItem(it)"
+                >
+                  <ion-icon slot="start" name="scan-outline"></ion-icon>
+                  Scan
+                </ion-button>
+
+                <ion-button
+                  size="small"
+                  fill="clear"
+                  [disabled]="d.estado === 'FINALIZADO'"
+                  (click)="agregarObservacion(it)"
+                >
+                  Nota
+                </ion-button>
+              </div>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+    <div class="bottom-space"></div>
+  </ng-container>
+</ion-content>
+
+<ion-footer class="footer" *ngIf="detalle() as d">
+  <div class="footer-inner">
+    <div class="summary">
+      <div class="left">
+        <div class="big">{{ totalPickeado() }} / {{ totalRequerido() }}</div>
+        <div class="small">unidades pickeadas</div>
+      </div>
+      <div class="right">
+        <ion-button
+          expand="block"
+          color="success"
+          [disabled]="d.estado === 'FINALIZADO'"
+          (click)="finalizarPicking()"
+        >
+          <ion-icon slot="start" name="flag-outline"></ion-icon>
+          Finalizar
+        </ion-button>
+      </div>
+    </div>
+  </div>
+</ion-footer>
+
+
+
+
+
+

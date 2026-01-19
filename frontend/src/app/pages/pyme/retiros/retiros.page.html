@@ -1,19 +1,37 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Órdenes de Retiro</ion-title>
+    <ion-title>Órdenes de retiro</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <ion-button expand="block" (click)="goCreate()">Crear orden de retiro</ion-button>
 
-  <!-- Placeholder hasta implementar backend de órdenes -->
-  <ion-list>
-    <ion-item>
+  <ion-button expand="block" (click)="goCrear()">
+    + Nuevo retiro
+  </ion-button>
+
+  <div *ngIf="loading" class="center">
+    <ion-spinner></ion-spinner>
+    <ion-text> Cargando retiros...</ion-text>
+  </div>
+
+  <ion-text *ngIf="errorMsg" color="danger">
+    <p class="error">{{ errorMsg }}</p>
+  </ion-text>
+
+  <ion-list *ngIf="!loading && ordenes.length > 0">
+    <ion-item button *ngFor="let o of ordenes" (click)="goDetalle(o.id)">
       <ion-label>
-        <h2>Sin órdenes aún</h2>
-        <p>Crea tu primera orden de retiro.</p>
+        <strong>{{ o.codigo }}</strong><br />
+        <span class="muted">Estado: {{ o.estado }}</span><br />
+        <span class="muted">{{ o.comuna }} · {{ o.fecha_solicitada }}</span>
       </ion-label>
     </ion-item>
   </ion-list>
+
+  <ion-text *ngIf="!loading && ordenes.length === 0">
+    <p class="muted">Aún no tienes órdenes de retiro.</p>
+  </ion-text>
+
 </ion-content>
+

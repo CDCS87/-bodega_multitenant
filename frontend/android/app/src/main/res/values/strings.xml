@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">logistica</string>
+    <string name="title_activity_main">logistica</string>
+    <string name="package_name">cl.bodega.logistica</string>
+    <string name="custom_url_scheme">cl.bodega.logistica</string>
+</resources>

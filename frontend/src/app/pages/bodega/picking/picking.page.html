@@ -1,0 +1,70 @@
+<!-- frontend/src/app/pages/bodega/picking/picking.page.html -->
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Picking (Bodega)</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-item>
+    <ion-label position="stacked">Escanear/Pegar código despacho</ion-label>
+    <ion-input
+      #scannerInput
+      [(ngModel)]="scan"
+      placeholder="despacho:PYME-001-DES-YYYYMMDD-0001"
+      (keyup.enter)="buscarPorScan()">
+    </ion-input>
+  </ion-item>
+
+  <div class="actions-row">
+    <ion-button expand="block" (click)="buscarPorScan()" [disabled]="loading">
+      Buscar por código
+    </ion-button>
+
+    <ion-button expand="block" fill="outline" (click)="scanConCamara()" [disabled]="loading">
+      Escanear con cámara
+    </ion-button>
+  </div>
+
+  <ion-segment [(ngModel)]="segment" (ionChange)="onSegmentChange()">
+    <ion-segment-button value="PENDIENTES">Pendientes</ion-segment-button>
+    <ion-segment-button value="PREPARADOS">Preparados</ion-segment-button>
+  </ion-segment>
+
+  <ion-item>
+    <ion-label position="stacked">Buscar en listado</ion-label>
+    <ion-input [(ngModel)]="q" placeholder="Código / Cliente / Comuna" (ionInput)="applyFilter()"></ion-input>
+  </ion-item>
+
+  <ion-button expand="block" fill="outline" (click)="load()" [disabled]="loading">
+    Recargar
+  </ion-button>
+
+  <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
+
+  <ion-text color="danger" *ngIf="errorMsg">
+    <p>{{ errorMsg }}</p>
+  </ion-text>
+
+  <ion-list *ngIf="!loading && filtered.length">
+    <ion-item button *ngFor="let o of filtered" (click)="open(o.id)">
+      <ion-label>
+        <h2 class="code-row">
+          <span>{{ o.codigo }}</span>
+          <ion-badge [color]="estadoColor(o.estado)" class="estado-badge">
+            {{ o.estado }}
+          </ion-badge>
+        </h2>
+        <p>{{ o.destinatario_nombre }} • {{ o.comuna }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-text *ngIf="!loading && !filtered.length">
+    <p>No hay despachos para este filtro.</p>
+  </ion-text>
+
+</ion-content>
+
+

@@ -1,0 +1,70 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Detalle retiro</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-button fill="outline" (click)="back()">Volver</ion-button>
+
+  @if (loading) {
+    <div class="center">
+      <ion-spinner></ion-spinner>
+      <ion-text> Cargando...</ion-text>
+    </div>
+  }
+
+  @if (errorMsg) {
+    <ion-text color="danger">
+      <p class="error">{{ errorMsg }}</p>
+    </ion-text>
+  }
+
+  @if (!loading && orden) {
+    <div>
+
+    <h2>{{ orden.codigo }}</h2>
+    <p><strong>Estado:</strong> {{ orden.estado }}</p>
+    <p><strong>Dirección:</strong> {{ orden.direccion_retiro }}</p>
+    <p><strong>Comuna:</strong> {{ orden.comuna }}</p>
+    <p><strong>Fecha solicitada:</strong> {{ orden.fecha_solicitada }}</p>
+
+    <p *ngIf="orden.observaciones">
+      <strong>Observaciones:</strong> {{ orden.observaciones }}
+    </p>
+
+    <h3 class="mt">Detalle</h3>
+
+    <ion-list>
+      <ion-item *ngFor="let d of orden.detalle">
+        <ion-label>
+          <strong>{{ d.nombre_producto }}</strong><br />
+          <span class="muted">SKU: {{ d.sku_generado }}</span><br />
+          <span>Cant. esperada: {{ d.cantidad_esperada }}</span>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+
+    <h3 class="mt">QR</h3>
+
+    <div *ngIf="qrDataUrl" class="qrBox">
+      <img [src]="qrDataUrl" alt="QR Retiro" class="qrImg" />
+    </div>
+
+    <ion-text *ngIf="!qrDataUrl && orden?.qr_code">
+      <p class="qr">{{ orden.qr_code }}</p>
+    </ion-text>
+
+    <div class="row" *ngIf="orden?.qr_code">
+      <ion-button expand="block" fill="outline" (click)="copyPayload()" [disabled]="copying">
+        {{ copying ? 'Copiando...' : 'Copiar payload' }}
+      </ion-button>
+    </div>
+
+    </div>
+  }
+
+</ion-content>
+
+

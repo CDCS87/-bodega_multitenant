@@ -1,0 +1,174 @@
+.subheader {
+  padding: 0 14px 10px 14px;
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .code {
+    font-weight: 600;
+    border-radius: 10px;
+  }
+
+  .meta {
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    opacity: 0.8;
+  }
+}
+
+.skeleton {
+  padding: 10px;
+}
+
+ion-card.info {
+  margin: 12px;
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .kv {
+    .k {
+      font-size: 11px;
+      opacity: 0.7;
+      margin-bottom: 2px;
+    }
+    .v {
+      font-size: 14px;
+      font-weight: 600;
+    }
+  }
+
+  .actions {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+}
+
+ion-card.items {
+  margin: 12px;
+
+  .item-row {
+    --padding-top: 10px;
+    --padding-bottom: 10px;
+
+    &.done {
+      opacity: 0.75;
+
+      .name {
+        text-decoration: line-through;
+      }
+    }
+  }
+
+  .title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+
+    .name {
+      font-weight: 700;
+      font-size: 14px;
+      line-height: 1.1;
+    }
+
+    .mini {
+      height: 22px;
+      margin: 0;
+      ion-icon {
+        margin-right: 4px;
+      }
+      ion-label {
+        font-size: 11px;
+      }
+    }
+  }
+
+  .sub {
+    margin-top: 4px;
+    font-size: 12px;
+    opacity: 0.8;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .qty {
+    margin-top: 6px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .warn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+    }
+  }
+
+  .obs {
+    margin-top: 6px;
+  }
+
+  .row-actions {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .spacer {
+      flex: 1;
+    }
+
+    .qty-input {
+      width: 70px;
+      max-width: 90px;
+      text-align: center;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 10px;
+      padding: 6px 8px;
+    }
+  }
+}
+
+.bottom-space {
+  height: 90px; // para que no lo tape el footer
+}
+
+.footer {
+  .footer-inner {
+    padding: 10px 12px;
+  }
+
+  .summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    align-items: center;
+
+    .big {
+      font-size: 16px;
+      font-weight: 800;
+    }
+    .small {
+      font-size: 12px;
+      opacity: 0.75;
+    }
+  }
+}
+
+

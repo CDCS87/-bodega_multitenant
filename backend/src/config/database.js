@@ -1,30 +1,25 @@
+// backend/src/config/database.js
 const { Sequelize } = require('sequelize');
-require('dotenv').config();
 
-// Configuración de la conexión usando tus variables del .env
+function required(name) {
+  const v = process.env[name];
+  if (v === undefined || v === null || String(v).trim() === '') {
+    throw new Error(`Falta variable de entorno: ${name}`);
+  }
+  return String(v);
+}
+
 const sequelize = new Sequelize(
-  process.env.DB_NAME, 
-  process.env.DB_USER, 
-  process.env.DB_PASSWORD, 
+  required('DB_NAME'),
+  required('DB_USER'),
+  required('DB_PASSWORD'), // ✅ siempre string y existe
   {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
+    host: required('DB_HOST'),
+    port: Number(process.env.DB_PORT || 5432),
     dialect: 'postgres',
-    logging: false, // Para que la consola esté limpia
-    pool: { max: 5, min: 0, acquire: 30000, idle: 10000 }
+    logging: false
   }
 );
 
-// Prueba de conexión inmediata
-const testConnection = async () => {
-  try {
-    await sequelize.authenticate();
-    console.log('✅ Conexión a PostgreSQL establecida con éxito.');
-  } catch (error) {
-    console.error('❌ Error conectando a la base de datos:', error);
-  }
-};
-
-testConnection();
-
 module.exports = sequelize;
+

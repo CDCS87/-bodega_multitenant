@@ -1,23 +1,43 @@
-.search-row {
+.mt {
+  margin-top: 16px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.itemRow {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.left .muted {
+  opacity: 0.7;
+  font-size: 12px;
+}
+
+.right {
   display: flex;
   gap: 8px;
   align-items: center;
 }
 
-.searchbar {
-  flex: 1;
-}
-
-.section {
-  margin-top: 16px;
-}
-
-.qty {
-  max-width: 110px;
+.right ion-input {
+  width: 90px;
+  text-align: center;
 }
 
 .actions {
-  display: flex;
-  gap: 8px;
+  margin-top: 18px;
+}
+
+.error {
   margin-top: 12px;
 }
+

@@ -1,0 +1,56 @@
+ion-content {
+  --background: #f6f7fb;
+}
+
+ion-spinner {
+  display: block;
+  margin: 28px auto;
+}
+
+ion-list {
+  background: transparent;
+  padding: 10px;
+}
+
+ion-item {
+  margin: 10px 0;
+  border-radius: 16px;
+  --background: #ffffff;
+  --padding-start: 12px;
+  --inner-padding-end: 12px;
+  --min-height: 92px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+ion-label h2 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+  color: #1f2937;
+}
+
+ion-label p {
+  font-size: 13px;
+  margin: 2px 0;
+  color: #4b5563;
+}
+
+ion-button {
+  margin-left: 10px;
+  height: 34px;
+  font-size: 12px;
+  font-weight: 600;
+  --border-radius: 12px;
+}
+
+/* Badge simple para el estado (opcional si luego lo quieres) */
+.estado {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(59, 130, 246, 0.12);
+  color: #1d4ed8;
+}

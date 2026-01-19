@@ -1,0 +1,26 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Retiros PYME</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-spinner *ngIf="loading"></ion-spinner>
+
+  <ion-list>
+    <ion-item *ngFor="let r of retiros">
+      <ion-label>
+        <h2>{{ r.direccion_retiro }}</h2>
+        <p>{{ r.comuna }}</p>
+        <p><b>Estado:</b> {{ r.estado }}</p>
+      </ion-label>
+
+      <ion-button
+        color="primary"
+        *ngIf="r.estado === 'ASIGNADO'"
+        (click)="retirar(r.id)">
+        Retirado
+      </ion-button>
+    </ion-item>
+  </ion-list>
+</ion-content>

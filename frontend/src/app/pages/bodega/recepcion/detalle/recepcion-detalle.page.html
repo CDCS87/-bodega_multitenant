@@ -1,0 +1,49 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Checklist de recepción</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
+
+  <ion-text color="danger" *ngIf="errorMsg">
+    <p>{{ errorMsg }}</p>
+  </ion-text>
+
+  <div *ngIf="!loading && orden">
+    <ion-text>
+      <h2 class="orden-codigo">{{ orden.codigo }}</h2>
+      <p class="orden-estado">Estado: {{ orden.estado }}</p>
+      <p class="orden-ubicacion">{{ orden.comuna }} • {{ orden.direccion_retiro }}</p>
+    </ion-text>
+
+    <h3 class="section-title">Items</h3>
+
+    <ion-list>
+      <ion-item *ngFor="let d of detalle">
+        <ion-label>
+          <h2>{{ d.nombre_producto }}</h2>
+          <p>Esperado: {{ d.cantidad_esperada }}</p>
+          <p *ngIf="d.sku_generado">SKU: {{ d.sku_generado }}</p>
+        </ion-label>
+
+        <ion-input
+          type="number"
+          min="0"
+          [max]="d.cantidad_esperada"
+          [(ngModel)]="d.cantidad_recibida"
+          class="cantidad-input"
+        ></ion-input>
+      </ion-item>
+    </ion-list>
+
+    <h3 class="section-title">Evidencia (opcional)</h3>
+    <input type="file" multiple accept="image/*" (change)="onFiles($event)" aria-label="Cargar evidencia de recepción" />
+
+    <ion-button expand="block" (click)="confirmar()" [disabled]="saving">
+      <ion-spinner *ngIf="saving" name="crescent"></ion-spinner>
+      <span *ngIf="!saving">Confirmar ingreso</span>
+    </ion-button>
+  </div>
+</ion-content>

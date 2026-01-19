@@ -1,0 +1,76 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Pedidos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-segment [value]="tipo" (ionChange)="setTipo($event)">
+    <ion-segment-button value="retiros">
+      <ion-label>Retiros</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="despachos">
+      <ion-label>Despachos</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <ion-searchbar
+    placeholder="Buscar por código / comuna / dirección..."
+    [(ngModel)]="q"
+    (ionInput)="onSearchChange()">
+  </ion-searchbar>
+
+  <div class="chips">
+    <ion-chip (click)="setEstado('TODOS')" [outline]="estado !== 'TODOS'">Todos</ion-chip>
+    <ion-chip (click)="setEstado('SOLICITADO')" [outline]="estado !== 'SOLICITADO'">Solicitado</ion-chip>
+    <ion-chip (click)="setEstado('EN_PROCESO')" [outline]="estado !== 'EN_PROCESO'">En proceso</ion-chip>
+    <ion-chip (click)="setEstado('COMPLETADO')" [outline]="estado !== 'COMPLETADO'">Completado</ion-chip>
+    <ion-chip (click)="setEstado('FALLIDO')" [outline]="estado !== 'FALLIDO'">Fallido</ion-chip>
+  </div>
+
+  <ion-button *ngIf="tipo==='retiros'" expand="block" (click)="goCrearRetiro()">
+    + Solicitar retiro
+  </ion-button>
+
+  <div *ngIf="loading" class="center">
+    <ion-spinner></ion-spinner>
+    <ion-text> Cargando...</ion-text>
+  </div>
+
+  <ion-text *ngIf="errorMsg" color="danger">
+    <p class="error">{{ errorMsg }}</p>
+  </ion-text>
+
+  <!-- LISTA RETIROS -->
+  <ion-list *ngIf="!loading && tipo==='retiros'">
+    <ion-item button *ngFor="let o of retiros" (click)="openItem(o)">
+      <ion-label>
+        <div class="row">
+          <strong>{{ o.codigo || ('Retiro #' + o.id) }}</strong>
+          <span class="badge" [class]="badgeColor(o.estado)">{{ o.estado }}</span>
+        </div>
+
+        <div class="muted">
+          {{ o.comuna }} · {{ o.fecha_solicitada || o.fecha_creacion }}
+        </div>
+
+        <div class="muted">
+          {{ o.direccion_retiro }}
+        </div>
+      </ion-label>
+    </ion-item>
+
+    <ion-text *ngIf="retiros.length===0">
+      <p class="muted">No hay retiros con esos filtros.</p>
+    </ion-text>
+  </ion-list>
+
+  <!-- DESPACHOS PLACEHOLDER -->
+  <div *ngIf="!loading && tipo==='despachos'" class="empty">
+    <ion-text>
+      <p>Aún no conectamos despachos. Esta pestaña se activa cuando implementemos el backend de órdenes de despacho.</p>
+    </ion-text>
+  </div>
+
+</ion-content>
