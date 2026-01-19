@@ -37,10 +37,10 @@ async function start() {
     console.log('✅ Conexión a PostgreSQL establecida con éxito.');
 
     app.listen(PORT, () => {
-      console.log(`🚀 API corriendo en http://localhost:${PORT}`);
+      console.log(`API corriendo en puerto ${PORT}`);
     });
   } catch (e) {
-    console.error('❌ Error de conexión a PostgreSQL:', e);
+    console.error('Error de conexión a PostgreSQL:', e);
     process.exit(1);
   }
 }
