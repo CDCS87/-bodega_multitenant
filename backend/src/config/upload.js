@@ -19,4 +19,11 @@ const fileFilter = (req, file, cb) => {
   cb(ok ? null : new Error('Formato no permitido (solo jpg/png/webp)'), ok);
 };
 
+const multer = require('multer');
+
+module.exports = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 8 * 1024 * 1024 } // 8MB
+});
+
 module.exports = multer({ storage, fileFilter, limits: { fileSize: 8 * 1024 * 1024 } });
