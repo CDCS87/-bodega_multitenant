@@ -26,9 +26,9 @@ app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 // rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
-app.use('/api/retiros', retiroRoutes);
-app.use('/api/despachos', despachoRoutes);
-app.use('/api/transporte', transporteRoutes);
+//app.use('/api/retiros', retiroRoutes);
+//app.use('/api/despachos', despachoRoutes);
+//app.use('/api/transporte', transporteRoutes);
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 
