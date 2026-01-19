@@ -33,7 +33,9 @@
       </ion-input>
     </ion-item>
 
-    <p *ngIf="error" class="error-text">{{ error }}</p>
+    @if (error) {
+      <p class="error-text">{{ error }}</p>
+    }
 
     <ion-button expand="block" class="login-button" (click)="login()" [disabled]="loading">
       <ion-icon slot="start" name="log-in-outline"></ion-icon>

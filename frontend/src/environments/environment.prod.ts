@@ -1,2 +1,6 @@
-export const environment = { production: true, apiUrl: 'https://TU_BACKEND_RAILWAY_URL' };
+export const environment = {
+  production: true,
+  apiUrl: 'https://bodegamultitenant-production.up.railway.app'
+};
+
 

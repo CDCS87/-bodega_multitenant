@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonContent, IonHeader, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonButton, IonSpinner } from '@ionic/angular/standalone';
-import { TransporteService } from '../../../../services/transporte.service';
+import { TransporteService } from '../../../services/transporte.service';
 
 @Component({
   selector: 'app-transporte-retiros',
