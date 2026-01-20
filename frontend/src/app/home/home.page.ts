@@ -38,7 +38,7 @@ export class HomePage implements OnInit {
 
     switch (role) {
       case 'PYME':
-        this.router.navigate(['/pyme/retiros'], { replaceUrl: true });
+        this.router.navigate(['/pyme/dashboard.page'], { replaceUrl: true });
         break;
       case 'ADMINISTRADOR':
         this.router.navigate(['/admin/dashboard'], { replaceUrl: true });
