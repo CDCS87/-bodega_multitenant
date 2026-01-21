@@ -92,8 +92,7 @@ interface Producto {
     IonSearchbar,
     IonList,
     IonItem,
-    IonBadge,
-    IonText
+    IonBadge
 ],
 })
 export class DashboardPage implements OnInit {
@@ -232,7 +231,7 @@ export class DashboardPage implements OnInit {
   }
 
   irAOrdenes() {
-    this.router.navigateByUrl('/pyme/orders');
+    this.router.navigateByUrl('/pyme/orders.page');
   }
 
   async abrirModalCrearProducto() {
