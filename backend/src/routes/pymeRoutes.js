@@ -1,7 +1,7 @@
 // GET /api/pyme/me
 const express = require('express');
 const router = express.Router();
-const pool = require('../db'); // o donde tengas tu pool
+const pool = require('../database'); 
 const authMiddleware = require('../middleware/authMiddleware');
 
 router.get('/pyme/me', authMiddleware, async (req, res) => {
