@@ -197,21 +197,33 @@ export class DashboardPage implements OnInit {
   // =========================
 async cargarDatosUsuario() {
   try {
-    const response = await fetch('/api/pyme/me', {
+    const token = localStorage.getItem('token');
+    console.log('[PYME] token?', !!token);
+
+    const url = '/api/pyme/me';
+    console.log('[PYME] GET', url);
+
+    const response = await fetch(url, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
-    if (!response.ok) throw new Error('No se pudo cargar la pyme');
+    console.log('[PYME] status', response.status);
 
-    const pyme = await response.json();
+    const text = await response.text();
+    console.log('[PYME] body', text);
 
-    this.empresaNombre = pyme.razon_social;
-    this.codigoPyme = pyme.codigo_pyme;
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
+    const pyme = JSON.parse(text);
+
+    this.empresaNombre = pyme.razon_social || 'Mi Empresa';
+    this.codigoPyme = pyme.codigo_pyme || '';
+
+    console.log('[PYME] OK =>', this.empresaNombre, this.codigoPyme);
   } catch (err) {
-    console.error('Error cargando pyme', err);
+    console.error('[PYME] Error cargando pyme', err);
     this.empresaNombre = 'Mi Empresa';
     this.codigoPyme = '';
   }
