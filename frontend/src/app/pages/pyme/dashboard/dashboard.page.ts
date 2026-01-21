@@ -60,7 +60,7 @@ import {
 } from 'ionicons/icons';
 import { ProductService } from '../../../services/product.service';
 import { Router } from '@angular/router';
-import { ModalController } from '@ionic/angular';
+import { ModalController } from '@ionic/angular/standalone';
 import { ProductoModalComponent } from '../../../components/producto-modal.component';
 
 interface DashboardMetrics {
