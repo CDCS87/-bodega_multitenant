@@ -37,48 +37,54 @@ Object.values(models).forEach((model) => {
 /* =========================
    Asociaciones RETIROS
 ========================= */
+// Relación con Detalle
 OrdenRetiro.hasMany(OrdenRetiroDetalle, {
-  foreignKey: 'orden_retiro_id',
+  foreignKey: 'retiro_id', // CORREGIDO: Coincide con tu DB
   as: 'detalle'
 });
 OrdenRetiroDetalle.belongsTo(OrdenRetiro, {
-  foreignKey: 'orden_retiro_id',
+  foreignKey: 'retiro_id', // CORREGIDO
   as: 'orden'
 });
 OrdenRetiroDetalle.belongsTo(Product, {
   foreignKey: 'producto_id',
   as: 'producto'
 });
+
+// Relación con Evidencias
 OrdenRetiro.hasMany(OrdenRetiroEvidencia, {
-  foreignKey: 'orden_retiro_id',
+  foreignKey: 'retiro_id', // CORREGIDO
   as: 'evidencias'
 });
 OrdenRetiroEvidencia.belongsTo(OrdenRetiro, {
-  foreignKey: 'orden_retiro_id',
+  foreignKey: 'retiro_id', // CORREGIDO
   as: 'orden'
 });
 
 /* =========================
    Asociaciones DESPACHOS
 ========================= */
+// Relación con Detalle
 OrdenDespacho.hasMany(OrdenDespachoDetalle, {
-  foreignKey: 'orden_despacho_id',
+  foreignKey: 'despacho_id', // CORREGIDO: Coincide con tu DB
   as: 'detalle'
 });
 OrdenDespachoDetalle.belongsTo(OrdenDespacho, {
-  foreignKey: 'orden_despacho_id',
+  foreignKey: 'despacho_id', // CORREGIDO
   as: 'orden'
 });
 OrdenDespachoDetalle.belongsTo(Product, {
   foreignKey: 'producto_id',
   as: 'producto'
 });
+
+// Relación con Evidencias
 OrdenDespacho.hasMany(OrdenDespachoEvidencia, {
-  foreignKey: 'orden_despacho_id',
+  foreignKey: 'despacho_id', // CORREGIDO
   as: 'evidencias'
 });
 OrdenDespachoEvidencia.belongsTo(OrdenDespacho, {
-  foreignKey: 'orden_despacho_id',
+  foreignKey: 'despacho_id', // CORREGIDO
   as: 'orden'
 });
 

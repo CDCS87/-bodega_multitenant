@@ -1,46 +1,33 @@
-const db = require('../config/database');
+// src/models/OrdenRetiroDetalle.js
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-async function listByRetiroId(retiroId) {
-  const q = `SELECT * FROM ordenes_retiro_detalle WHERE orden_retiro_id = $1 ORDER BY id ASC;`;
-  const { rows } = await db.query(q, [retiroId]);
-  return rows;
-}
-
-async function insertMany(orden_retiro_id, items) {
-  if (!items?.length) return [];
-
-  const values = [];
-  const placeholders = [];
-  let i = 1;
-
-  for (const it of items) {
-    placeholders.push(
-      `($${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++})`
-    );
-
-    values.push(
-      orden_retiro_id,
-      it.nombre_producto ?? null,
-      it.descripcion ?? null,
-      it.cantidad_esperada ?? 0,
-      it.tiene_codigo_barras ?? false,
-      it.codigo_barras ?? null,
-      it.sku_generado ?? null,
-      it.producto_id ?? null
-    );
+const OrdenRetiroDetalle = sequelize.define('OrdenRetiroDetalle', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  // OJO: En tu SQL usabas 'retiro_id', pero en index.js pusiste 'orden_retiro_id'.
+  // Debes asegurarte de cuál es el nombre real en tu base de datos.
+  // Aquí pongo 'retiro_id' basándome en tu código SQL anterior.
+  retiro_id: { 
+    type: DataTypes.INTEGER,
+    allowNull: false
+    // Si en tu DB se llama 'orden_retiro_id', cambia este nombre aquí.
+  },
+  producto_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  cantidad: {
+    type: DataTypes.INTEGER,
+    allowNull: false
   }
+}, {
+  tableName: 'ordenes_retiro_detalle', // Nombre real de la tabla en DB
+  timestamps: false
+});
 
-  const q = `
-    INSERT INTO ordenes_retiro_detalle
-      (orden_retiro_id, nombre_producto, descripcion, cantidad_esperada,
-       tiene_codigo_barras, codigo_barras, sku_generado, producto_id)
-    VALUES ${placeholders.join(',')}
-    RETURNING *;
-  `;
-
-  const { rows } = await db.query(q, values);
-  return rows;
-}
-
-module.exports = { insertMany, listByRetiroId };
+module.exports = OrdenRetiroDetalle;
 
