@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ModalController } from '@ionic/angular';
+import { ModalController } from '@ionic/angular/standalone'; // ✅ AQUÍ
+
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
   IonItem, IonLabel, IonInput, IonButton, IonList, IonText
@@ -25,7 +26,7 @@ type KV = { key: string; value: string };
 export class ProductoModalComponent {
   nombre = '';
   sku = '';
-  descripcionTexto = ''; 
+  descripcionTexto = '';
 
   kv: KV[] = [{ key: '', value: '' }];
 
@@ -51,7 +52,6 @@ export class ProductoModalComponent {
     this.modalCtrl.dismiss();
   }
 
-  // ✅ Devuelve null si no hay características válidas
   private buildCaracteristicas(): Record<string, any> | null {
     const obj: Record<string, any> = {};
     const usedKeys = new Set<string>();
@@ -59,18 +59,12 @@ export class ProductoModalComponent {
     for (const row of this.kv) {
       const k = (row.key ?? '').trim();
       const v = (row.value ?? '').trim();
-
-      // si no hay key, ignorar fila
       if (!k) continue;
 
-      // evitar claves duplicadas (case-insensitive)
       const keyLower = k.toLowerCase();
-      if (usedKeys.has(keyLower)) {
-        throw new Error(`La clave "${k}" está duplicada.`);
-      }
+      if (usedKeys.has(keyLower)) throw new Error(`La clave "${k}" está duplicada.`);
       usedKeys.add(keyLower);
 
-      // si el valor está vacío, lo guardamos como string vacío (o puedes decidir ignorar)
       obj[k] = v;
     }
 
@@ -78,21 +72,13 @@ export class ProductoModalComponent {
   }
 
   private validate(): { ok: boolean; message?: string } {
-    const nombre = this.nombre.trim();
-    if (!nombre) return { ok: false, message: 'El nombre es obligatorio.' };
-
-    // sku pendiente para otra etapa
+    if (!this.nombre.trim()) return { ok: false, message: 'El nombre es obligatorio.' };
     if (this.sku.trim() && this.sku.trim().length < 3) {
       return { ok: false, message: 'El SKU debe tener al menos 3 caracteres (o déjalo vacío).' };
     }
-
-    // valida duplicados / estructura KV
-    try {
-      this.buildCaracteristicas();
-    } catch (e: any) {
+    try { this.buildCaracteristicas(); } catch (e: any) {
       return { ok: false, message: e?.message || 'Error en características.' };
     }
-
     return { ok: true };
   }
 
@@ -100,7 +86,6 @@ export class ProductoModalComponent {
     if (this.saving) return;
 
     this.errorMsg = '';
-
     const v = this.validate();
     if (!v.ok) {
       this.errorMsg = v.message || 'Revisa los datos.';
@@ -120,10 +105,8 @@ export class ProductoModalComponent {
 
     const payload: any = {
       nombre: this.nombre.trim(),
-      // SQL: descripcion es TEXT
       descripcion: this.descripcionTexto.trim() ? this.descripcionTexto.trim() : null,
-      // SQL: JSONB real
-      caracteristicas_especificas: caracteristicas
+      caracteristicas_especificas: caracteristicas,
     };
 
     if (this.sku.trim()) payload.sku = this.sku.trim();

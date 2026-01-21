@@ -1,13 +1,20 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardContent, IonCardHeader, IonButton, IonItem, IonLabel, IonSelect, IonSelectOption, IonInput, IonBadge, IonNote, IonModal, IonDatetime, IonButtons, IonBackButton, IonCardTitle, IonGrid, IonRow, IonCol } from '@ionic/angular/standalone';
+import {
+  IonContent, IonHeader, IonToolbar, IonTitle,
+  IonCard, IonCardContent, IonCardHeader, IonCardTitle,
+  IonButton, IonItem, IonLabel, IonSelect, IonSelectOption,
+  IonInput, IonButtons, IonBackButton,
+  IonGrid, IonRow, IonCol,
+  IonList, IonText, IonChip, IonNote, IonBadge, IonModal } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 
 type Tipo = 'ALL' | 'RETIRO' | 'DESPACHO';
 type Estado =
   | 'ALL'
   | 'SOLICITADO'
+  | 'ASIGNADO'
   | 'EN_PREPARACION'
   | 'PREPARADO'
   | 'EN_TRANSITO'
@@ -17,38 +24,51 @@ type Estado =
 @Component({
   selector: 'app-orders',
   standalone: true,
-  imports: [IonCardTitle,
+  imports: [IonBadge,
     CommonModule, FormsModule,
     IonContent, IonHeader, IonToolbar, IonTitle,
-    IonCard, IonCardContent, IonCardHeader,
-    IonButton, IonItem, IonLabel, IonSelect,
-    IonSelectOption, IonInput, IonBadge, IonNote,
-    IonModal, IonDatetime, IonButtons, IonBackButton, IonGrid, IonHeader, IonRow, IonGrid, IonCol,IonRow],
-  templateUrl: './orders.page.html'
+    IonCard, IonCardContent, IonCardHeader, IonCardTitle,
+    IonButton, IonItem, IonLabel, IonSelect, IonSelectOption,
+    IonInput, IonButtons, IonBackButton,
+    IonGrid, IonRow, IonCol,
+    IonList, IonText],
+  templateUrl: './orders.page.html',
+  styleUrls: ['./orders.page.scss']
 })
 export class OrdersPage {
+  empresaNombre = '';
+  codigoPyme = '';
 
   loading = false;
 
   filters = {
     tipo: 'ALL' as Tipo,
     estado: 'ALL' as Estado,
-    desde: null as string | null,
-    hasta: null as string | null,
     q: ''
   };
 
-  orders: any[] = [];
+  // historial (mock por ahora)
+  orders: Array<{
+    id: number;
+    codigo: string;
+    tipo: 'RETIRO' | 'DESPACHO';
+    estado: Estado;
+  }> = [];
 
-  dateModalOpen = false;
-  tempDesde: string | null = null;
-  tempHasta: string | null = null;
+  filtered: typeof this.orders = [];
 
   private searchDebounce: any;
 
   constructor(private router: Router) {}
 
   ionViewWillEnter() {
+    const ud = localStorage.getItem('userData');
+    if (ud) {
+      const u = JSON.parse(ud);
+      this.empresaNombre = u.empresa_nombre ?? '';
+      this.codigoPyme = u.codigo_pyme ?? '';
+    }
+
     this.reload();
   }
 
@@ -56,16 +76,17 @@ export class OrdersPage {
   // Navegación
   // =====================
   goToRetiro() {
-    this.router.navigate(['/pyme/orders/retiros/create']);
+    // 
+    this.router.navigateByUrl('/pyme/orders/retiros/crear');
   }
 
   goToDespacho() {
-    this.router.navigate(['/pyme/orders/despachos/create']);
+    alert('Despachos pendiente');
   }
 
   openOrder(o: any) {
-    const base = o.tipo === 'RETIRO' ? 'retiros' : 'despachos';
-    this.router.navigate([`/pyme/orders/${base}/detalle/${o.id}`]);
+    if (o.tipo === 'RETIRO') this.router.navigate(['/pyme/orders/retiros', o.id]);
+    else alert('Detalle despacho pendiente');
   }
 
   // =====================
@@ -73,25 +94,23 @@ export class OrdersPage {
   // =====================
   onSearch() {
     clearTimeout(this.searchDebounce);
-    this.searchDebounce = setTimeout(() => this.reload(), 300);
+    this.searchDebounce = setTimeout(() => this.applyFilters(), 250);
   }
 
   resetFilters() {
-    this.filters = { tipo:'ALL', estado:'ALL', desde:null, hasta:null, q:'' };
-    this.reload();
+    this.filters = { tipo: 'ALL', estado: 'ALL', q: '' };
+    this.applyFilters();
   }
 
-  openDateModal() {
-    this.tempDesde = this.filters.desde;
-    this.tempHasta = this.filters.hasta;
-    this.dateModalOpen = true;
-  }
+  applyFilters() {
+    const q = (this.filters.q || '').trim().toLowerCase();
 
-  applyDates() {
-    this.filters.desde = this.tempDesde;
-    this.filters.hasta = this.tempHasta;
-    this.dateModalOpen = false;
-    this.reload();
+    this.filtered = (this.orders || []).filter(o => {
+      const okTipo = this.filters.tipo === 'ALL' || o.tipo === this.filters.tipo;
+      const okEstado = this.filters.estado === 'ALL' || o.estado === this.filters.estado;
+      const okQ = !q || (o.codigo ?? '').toLowerCase().includes(q);
+      return okTipo && okEstado && okQ;
+    });
   }
 
   // =====================
@@ -100,9 +119,10 @@ export class OrdersPage {
   async reload() {
     this.loading = true;
 
-    // 👉 Aquí luego conectas backend real
+    // TODO: aquí después conectamos backend real.
     this.orders = [];
 
+    this.applyFilters();
     this.loading = false;
   }
 
@@ -112,6 +132,7 @@ export class OrdersPage {
   badgeColor(estado: string) {
     const map: any = {
       SOLICITADO: 'medium',
+      ASIGNADO: 'secondary',
       EN_PREPARACION: 'warning',
       PREPARADO: 'primary',
       EN_TRANSITO: 'tertiary',
@@ -124,6 +145,7 @@ export class OrdersPage {
   labelEstado(estado: string) {
     const map: any = {
       SOLICITADO: 'Solicitado',
+      ASIGNADO: 'Asignado',
       EN_PREPARACION: 'En preparación',
       PREPARADO: 'Preparado',
       EN_TRANSITO: 'En tránsito',
@@ -133,4 +155,5 @@ export class OrdersPage {
     return map[estado] || estado;
   }
 }
+
 

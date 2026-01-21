@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
 import {
   IonContent,
   IonHeader,
@@ -25,19 +26,13 @@ import {
   IonRefresher,
   IonRefresherContent,
   IonSearchbar,
-  IonSelect,
-  IonSelectOption,
   IonList,
   IonItem,
-  IonItemSliding,
-  IonItemOptions,
-  IonItemOption,
-  IonChip,
-  IonModal,
-  IonDatetime,
   IonFab,
   IonFabButton,
+  ModalController,
 } from '@ionic/angular/standalone';
+
 import { addIcons } from 'ionicons';
 import {
   cubeOutline,
@@ -57,13 +52,12 @@ import {
   imageOutline,
   statsChartOutline,
   refreshOutline,
+  logOutOutline,
 } from 'ionicons/icons';
+
 import { ProductService } from '../../../services/product.service';
 import { Router } from '@angular/router';
-import { ModalController } from '@ionic/angular/standalone';
 import { ProductoModalComponent } from '../../../components/producto-modal.component';
-import { logOutOutline } from 'ionicons/icons';
-
 
 interface DashboardMetrics {
   productosActivos: number;
@@ -81,6 +75,7 @@ interface Producto {
   cantidad_reservada: number;
   categoria: string;
   stock_minimo: number;
+  codigo_barras?: string | null;
 }
 
 interface Orden {
@@ -116,41 +111,50 @@ interface Estadistica {
   imports: [
     CommonModule,
     FormsModule,
+
     IonContent,
     IonHeader,
     IonTitle,
     IonToolbar,
+
     IonCard,
     IonCardContent,
     IonCardHeader,
     IonCardTitle,
+
     IonIcon,
     IonButton,
     IonButtons,
     IonMenuButton,
+
     IonGrid,
     IonRow,
     IonCol,
+
     IonProgressBar,
     IonBadge,
+
     IonSegment,
     IonSegmentButton,
     IonLabel,
+
     IonRefresher,
     IonRefresherContent,
+
     IonSearchbar,
     IonList,
     IonItem,
+
     IonFab,
-    IonFabButton
-],
+    IonFabButton,
+  ],
 })
 export class DashboardPage implements OnInit {
-  // Datos de la empresa
+  // Datos empresa
   empresaNombre: string = '';
   codigoPyme: string = '';
 
-  // Métricas del dashboard
+  // métricas
   metrics: DashboardMetrics = {
     productosActivos: 0,
     ordenesActivas: 0,
@@ -159,73 +163,81 @@ export class DashboardPage implements OnInit {
     stockBajo: 0,
   };
 
-  // Vista activa
-  vistaActiva: 'resumen' | 'inventario' | 'ordenes' | 'estadisticas' = 'resumen';
+  // vista
+  vistaActiva: 'resumen' | 'inventario' = 'resumen';
 
-  // Datos de inventario
+  // inventario
   productos: Producto[] = [];
   productosFiltrados: Producto[] = [];
   searchTerm: string = '';
   categoriaSeleccionada: string = 'todas';
   categorias: string[] = [];
 
-  // Datos de órdenes
+  // órdenes (si después las usas)
   ordenes: Orden[] = [];
   ordenesFiltradas: Orden[] = [];
-  tipoOrdenFiltro: 'TODAS' | 'DESPACHO' | 'RETIRO' = 'TODAS';
-  estadoOrdenFiltro: string = 'TODAS';
-  fechaInicio: string = '';
-  fechaFin: string = '';
 
-  // Estadísticas
+  // estadísticas (si después las usas)
   estadisticas: Estadistica = {
     ordenesDelMes: 0,
     productosMasDespachados: [],
     tiempoPromedioEntrega: 0,
   };
 
-  // Modal de evidencia
-  mostrarModalEvidencia: boolean = false;
-  evidenciaSeleccionada: string = '';
-  ordenSeleccionada: Orden | null = null;
-
   constructor(
-  private productService: ProductService,
-  private router: Router,
-  private modalCtrl: ModalController
-) {
-  addIcons({
-    cubeOutline,
-    documentTextOutline,
-    trendingUpOutline,
-    alertCircleOutline,
-    addOutline,
-    downloadOutline,
-    calendarOutline,
-    filterOutline,
-    searchOutline,
-    timeOutline,
-    locationOutline,
-    checkmarkCircleOutline,
-    closeCircleOutline,
-    navigateCircleOutline,
-    imageOutline,
-    statsChartOutline,
-    refreshOutline,
-  });
-}
+    private productService: ProductService,
+    private router: Router,
+    private modalCtrl: ModalController
+  ) {
+    addIcons({
+      cubeOutline,
+      documentTextOutline,
+      trendingUpOutline,
+      alertCircleOutline,
+      addOutline,
+      downloadOutline,
+      calendarOutline,
+      filterOutline,
+      searchOutline,
+      timeOutline,
+      locationOutline,
+      checkmarkCircleOutline,
+      closeCircleOutline,
+      navigateCircleOutline,
+      imageOutline,
+      statsChartOutline,
+      refreshOutline,
+      logOutOutline,
+    });
+  }
 
   ngOnInit() {
     this.cargarDatosUsuario();
     this.cargarDashboard();
   }
 
-    irAOrdenes() {
+  // =====================
+  // UI actions
+  // =====================
+  irAOrdenes() {
     this.router.navigateByUrl('/pyme/orders');
   }
 
+  async refrescarDatos(event?: any) {
+    await this.cargarDashboard();
+    if (event?.target?.complete) event.target.complete();
+  }
+
+  logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userData');
+    this.router.navigateByUrl('/login', { replaceUrl: true });
+  }
+
+  // =====================
+  // Data load
+  // =====================
   async cargarDatosUsuario() {
-    // Obtener datos del usuario desde localStorage o servicio
     const userData = localStorage.getItem('userData');
     if (userData) {
       const user = JSON.parse(userData);
@@ -239,8 +251,9 @@ export class DashboardPage implements OnInit {
       await Promise.all([
         this.cargarMetricas(),
         this.cargarProductos(),
-        this.cargarOrdenes(),
-        this.cargarEstadisticas(),
+        // si luego conectas órdenes/estadísticas reales, las reactivas
+        // this.cargarOrdenes(),
+        // this.cargarEstadisticas(),
       ]);
     } catch (error) {
       console.error('Error al cargar dashboard:', error);
@@ -249,7 +262,6 @@ export class DashboardPage implements OnInit {
 
   async cargarMetricas() {
     try {
-      // Llamada al backend para obtener métricas
       const response = await fetch('/api/pyme/dashboard/metrics', {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -259,7 +271,7 @@ export class DashboardPage implements OnInit {
       this.metrics = data;
     } catch (error) {
       console.error('Error al cargar métricas:', error);
-      // Datos de ejemplo para desarrollo
+      // fallback dev
       this.metrics = {
         productosActivos: 247,
         ordenesActivas: 18,
@@ -278,225 +290,93 @@ export class DashboardPage implements OnInit {
         },
       });
       const data = await response.json();
-      this.productos = data;
-      this.productosFiltrados = data;
-      
-      // Extraer categorías únicas
+
+      this.productos = Array.isArray(data) ? data : [];
+      this.productosFiltrados = [...this.productos];
+
       this.categorias = [
-        ...new Set(this.productos.map((p) => p.categoria)),
+        ...new Set(this.productos.map((p) => p.categoria).filter(Boolean)),
       ];
+
+      // aplica búsqueda actual (si había)
+      this.filtrarProductos();
     } catch (error) {
       console.error('Error al cargar productos:', error);
+      this.productos = [];
+      this.productosFiltrados = [];
     }
   }
 
-async abrirModalCrearProducto() {
-  const modal = await this.modalCtrl.create({
-    component: ProductoModalComponent
-  });
-
-  await modal.present();
-  const { data } = await modal.onWillDismiss();
-
-  if (data?.created) {
-    await this.cargarProductos();
-    this.vistaActiva = 'inventario';
-  }
-}
-
-
-  async cargarOrdenes() {
+  // =====================
+  // Modal crear producto
+  // =====================
+  async abrirModalCrearProducto() {
     try {
-      const response = await fetch('/api/pyme/ordenes', {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
+      console.log('CLICK -> abrirModalCrearProducto');
+
+      const modal = await this.modalCtrl.create({
+        component: ProductoModalComponent,
       });
-      const data = await response.json();
-      this.ordenes = data;
-      this.ordenesFiltradas = data;
-    } catch (error) {
-      console.error('Error al cargar órdenes:', error);
-    }
-  }
 
-  async cargarEstadisticas() {
-    try {
-      const response = await fetch('/api/pyme/dashboard/estadisticas', {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      const data = await response.json();
-      this.estadisticas = data;
-    } catch (error) {
-      console.error('Error al cargar estadísticas:', error);
-      // Datos de ejemplo
-      this.estadisticas = {
-        ordenesDelMes: 45,
-        productosMasDespachados: [
-          { nombre: 'Producto A', cantidad: 120 },
-          { nombre: 'Producto B', cantidad: 95 },
-          { nombre: 'Producto C', cantidad: 78 },
-        ],
-        tiempoPromedioEntrega: 2.5,
-      };
-    }
-  }
+      await modal.present();
 
-  // Filtrado de inventario
-  filtrarProductos() {
-    this.productosFiltrados = this.productos.filter((producto) => {
-      const coincideNombre = producto.nombre
-        .toLowerCase()
-        .includes(this.searchTerm.toLowerCase());
-      const coincideCategoria =
-        this.categoriaSeleccionada === 'todas' ||
-        producto.categoria === this.categoriaSeleccionada;
-      return coincideNombre && coincideCategoria;
-    });
-  }
+      const { data } = await modal.onWillDismiss();
 
-  // Filtrado de órdenes
-  filtrarOrdenes() {
-    this.ordenesFiltradas = this.ordenes.filter((orden) => {
-      const coincideTipo =
-        this.tipoOrdenFiltro === 'TODAS' || orden.tipo === this.tipoOrdenFiltro;
-      const coincideEstado =
-        this.estadoOrdenFiltro === 'TODAS' ||
-        orden.estado === this.estadoOrdenFiltro;
-
-      let coincideFecha = true;
-      if (this.fechaInicio && this.fechaFin) {
-        const fechaOrden = new Date(orden.fecha_creacion);
-        const inicio = new Date(this.fechaInicio);
-        const fin = new Date(this.fechaFin);
-        coincideFecha = fechaOrden >= inicio && fechaOrden <= fin;
+      if (data?.created) {
+        await this.cargarProductos();
+        this.vistaActiva = 'inventario';
       }
+    } catch (e) {
+      console.error('Error abriendo modal', e);
+    }
+  }
 
-      return coincideTipo && coincideEstado && coincideFecha;
+  // =====================
+  // Filtros inventario
+  // =====================
+  filtrarProductos() {
+    const term = (this.searchTerm || '').trim().toLowerCase();
+
+    this.productosFiltrados = (this.productos || []).filter((p) => {
+      const matchTerm =
+        !term ||
+        (p.nombre ?? '').toLowerCase().includes(term) ||
+        (p.sku ?? '').toLowerCase().includes(term) ||
+        ((p.codigo_barras ?? '') as string).toLowerCase().includes(term);
+
+      const matchCat =
+        this.categoriaSeleccionada === 'todas' ||
+        !p.categoria ||
+        p.categoria === this.categoriaSeleccionada;
+
+      return matchTerm && matchCat;
     });
   }
 
-  // Calcular porcentaje de volumen
+  // =====================
+  // Helpers volumen
+  // =====================
   get porcentajeVolumen(): number {
-    return (this.metrics.volumenOcupado / this.metrics.volumenTotal) * 100;
+    const total = Number(this.metrics?.volumenTotal ?? 0);
+    const ocupado = Number(this.metrics?.volumenOcupado ?? 0);
+    if (!total || total <= 0) return 0;
+    return (ocupado / total) * 100;
   }
 
-  // Obtener color para el indicador de volumen
   getColorVolumen(): string {
-    const porcentaje = this.porcentajeVolumen;
-    if (porcentaje < 70) return 'success';
-    if (porcentaje < 90) return 'warning';
+    const p = this.porcentajeVolumen;
+    if (p < 70) return 'success';
+    if (p < 90) return 'warning';
     return 'danger';
   }
 
-  // Obtener color para el estado de orden
-  getColorEstado(estado: string): string {
-    const colores: { [key: string]: string } = {
-      SOLICITADO: 'medium',
-      EN_PREPARACION: 'warning',
-      PREPARADO: 'primary',
-      EN_TRANSITO: 'tertiary',
-      ENTREGADO: 'success',
-      FALLIDO: 'danger',
-      CANCELADO: 'dark',
-    };
-    return colores[estado] || 'medium';
-  }
-
-  // Obtener texto legible para el estado
-  getTextoEstado(estado: string): string {
-    const textos: { [key: string]: string } = {
-      SOLICITADO: 'Solicitado',
-      EN_PREPARACION: 'En Preparación',
-      PREPARADO: 'Preparado',
-      EN_TRANSITO: 'En Tránsito',
-      ENTREGADO: 'Entregado',
-      FALLIDO: 'Fallido',
-      CANCELADO: 'Cancelado',
-    };
-    return textos[estado] || estado;
-  }
-
-  // Ver evidencia fotográfica
-  verEvidencia(orden: Orden) {
-    if (orden.foto_evidencia) {
-      this.ordenSeleccionada = orden;
-      this.evidenciaSeleccionada = orden.foto_evidencia;
-      this.mostrarModalEvidencia = true;
-    }
-  }
-
-  cerrarModalEvidencia() {
-    this.mostrarModalEvidencia = false;
-    this.evidenciaSeleccionada = '';
-    this.ordenSeleccionada = null;
-  }
-
-  // Navegación
-  irACrearOrden() {
-    this.router.navigate(['/pyme/crear-orden']);
-  }
-
-  irAGestionProductos() {
-    this.router.navigate(['/pyme/productos']);
-  }
-
-  verDetalleOrden(orden: Orden) {
-    this.router.navigate(['/pyme/ordenes', orden.id]);
-  }
-
-  verDetalleProducto(producto: Producto) {
-    this.router.navigate(['/pyme/productos', producto.id]);
-  }
-
-  // Exportar reportes
-  async exportarReporte(tipo: 'inventario' | 'ordenes' | 'estadisticas') {
-    try {
-      const response = await fetch(
-        `/api/pyme/reportes/${tipo}?fechaInicio=${this.fechaInicio}&fechaFin=${this.fechaFin}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        }
-      );
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `reporte-${tipo}-${new Date().toISOString().split('T')[0]}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error('Error al exportar reporte:', error);
-      alert('Error al exportar el reporte');
-    }
-  }
-
-  // Refrescar datos
-  async refrescarDatos(event?: any) {
-    await this.cargarDashboard();
-    if (event) {
-      event.target.complete();
-    }
-  }
-
-  // Cambiar vista
-  cambiarVista(vista: 'resumen' | 'inventario' | 'ordenes' | 'estadisticas') {
+  // =====================
+  // (Opcional) Cambiar vista
+  // =====================
+  cambiarVista(vista: 'resumen' | 'inventario') {
     this.vistaActiva = vista;
   }
-
-  // Cerrar sesión
-  logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userData');
-    this.router.navigateByUrl('/login', { replaceUrl: true });
-  }
 }
+
 
 
