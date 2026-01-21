@@ -12,6 +12,11 @@
   </ion-item>
 
   <ion-item>
+    <ion-label position="stacked">Código de barras *</ion-label>
+    <ion-input [(ngModel)]="codigoBarras" [disabled]="saving"></ion-input>
+  </ion-item>
+
+  <ion-item>
     <ion-label position="stacked">SKU (opcional)</ion-label>
     <ion-input [(ngModel)]="sku" [disabled]="saving"></ion-input>
   </ion-item>

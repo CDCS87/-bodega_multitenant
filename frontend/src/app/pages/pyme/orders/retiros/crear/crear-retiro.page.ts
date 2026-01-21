@@ -6,8 +6,7 @@ import {
   IonButtons, IonBackButton,
   IonCard, IonCardContent,
   IonItem, IonLabel, IonInput, IonSelect, IonSelectOption,
-  IonTextarea, IonButton, IonSpinner, IonBadge
-} from '@ionic/angular/standalone';
+  IonTextarea, IonButton, IonSpinner, IonBadge, IonCardHeader, IonCardTitle, IonText } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import QRCode from 'qrcode';
 
@@ -35,7 +34,7 @@ interface RetiroCreado {
 @Component({
   selector: 'app-pyme-retiro-crear',
   standalone: true,
-  imports: [
+  imports: [IonText, IonCardTitle, IonCardHeader, 
     CommonModule, FormsModule,
     IonContent, IonHeader, IonToolbar, IonTitle,
     IonButtons, IonBackButton,

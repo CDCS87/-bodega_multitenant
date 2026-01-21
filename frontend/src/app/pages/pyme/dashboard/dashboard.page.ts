@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
 import {
   IonContent,
   IonHeader,
@@ -19,7 +18,6 @@ import {
   IonRow,
   IonCol,
   IonProgressBar,
-  IonBadge,
   IonSegment,
   IonSegmentButton,
   IonLabel,
@@ -28,35 +26,21 @@ import {
   IonSearchbar,
   IonList,
   IonItem,
-  IonFab,
-  IonFabButton,
-  ModalController,
-} from '@ionic/angular/standalone';
+  IonBadge, IonText } from '@ionic/angular/standalone';
+
+import { ModalController } from '@ionic/angular/standalone';
+import { Router } from '@angular/router';
 
 import { addIcons } from 'ionicons';
 import {
   cubeOutline,
   documentTextOutline,
-  trendingUpOutline,
-  alertCircleOutline,
   addOutline,
-  downloadOutline,
-  calendarOutline,
-  filterOutline,
-  searchOutline,
-  timeOutline,
-  locationOutline,
-  checkmarkCircleOutline,
-  closeCircleOutline,
-  navigateCircleOutline,
-  imageOutline,
-  statsChartOutline,
   refreshOutline,
   logOutOutline,
 } from 'ionicons/icons';
 
 import { ProductService } from '../../../services/product.service';
-import { Router } from '@angular/router';
 import { ProductoModalComponent } from '../../../components/producto-modal.component';
 
 interface DashboardMetrics {
@@ -69,38 +53,11 @@ interface DashboardMetrics {
 
 interface Producto {
   id: number;
-  sku: string;
+  sku?: string;
   nombre: string;
   cantidad_disponible: number;
-  cantidad_reservada: number;
-  categoria: string;
   stock_minimo: number;
-  codigo_barras?: string | null;
-}
-
-interface Orden {
-  id: number;
-  codigo: string;
-  tipo: 'DESPACHO' | 'RETIRO';
-  estado:
-    | 'SOLICITADO'
-    | 'EN_PREPARACION'
-    | 'PREPARADO'
-    | 'EN_TRANSITO'
-    | 'ENTREGADO'
-    | 'FALLIDO'
-    | 'CANCELADO';
-  fecha_creacion: string;
-  direccion_destino?: string;
-  nombre_cliente?: string;
-  foto_evidencia?: string;
-  total_productos: number;
-}
-
-interface Estadistica {
-  ordenesDelMes: number;
-  productosMasDespachados: Array<{ nombre: string; cantidad: number }>;
-  tiempoPromedioEntrega: number;
+  categoria?: string;
 }
 
 @Component({
@@ -108,53 +65,42 @@ interface Estadistica {
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
   standalone: true,
-  imports: [
+  imports: [IonText, 
     CommonModule,
     FormsModule,
-
     IonContent,
     IonHeader,
     IonTitle,
     IonToolbar,
-
     IonCard,
     IonCardContent,
     IonCardHeader,
     IonCardTitle,
-
     IonIcon,
     IonButton,
     IonButtons,
     IonMenuButton,
-
     IonGrid,
     IonRow,
     IonCol,
-
     IonProgressBar,
-    IonBadge,
-
     IonSegment,
     IonSegmentButton,
     IonLabel,
-
     IonRefresher,
     IonRefresherContent,
-
     IonSearchbar,
     IonList,
     IonItem,
-
-    IonFab,
-    IonFabButton,
+    IonBadge,
   ],
 })
 export class DashboardPage implements OnInit {
-  // Datos empresa
-  empresaNombre: string = '';
-  codigoPyme: string = '';
+  empresaNombre = 'Mi Empresa';
+  codigoPyme = '—';
 
-  // métricas
+  vistaActiva: 'resumen' | 'inventario' = 'resumen';
+
   metrics: DashboardMetrics = {
     productosActivos: 0,
     ordenesActivas: 0,
@@ -163,26 +109,9 @@ export class DashboardPage implements OnInit {
     stockBajo: 0,
   };
 
-  // vista
-  vistaActiva: 'resumen' | 'inventario' = 'resumen';
-
-  // inventario
   productos: Producto[] = [];
   productosFiltrados: Producto[] = [];
-  searchTerm: string = '';
-  categoriaSeleccionada: string = 'todas';
-  categorias: string[] = [];
-
-  // órdenes (si después las usas)
-  ordenes: Orden[] = [];
-  ordenesFiltradas: Orden[] = [];
-
-  // estadísticas (si después las usas)
-  estadisticas: Estadistica = {
-    ordenesDelMes: 0,
-    productosMasDespachados: [],
-    tiempoPromedioEntrega: 0,
-  };
+  searchTerm = '';
 
   constructor(
     private productService: ProductService,
@@ -192,20 +121,7 @@ export class DashboardPage implements OnInit {
     addIcons({
       cubeOutline,
       documentTextOutline,
-      trendingUpOutline,
-      alertCircleOutline,
       addOutline,
-      downloadOutline,
-      calendarOutline,
-      filterOutline,
-      searchOutline,
-      timeOutline,
-      locationOutline,
-      checkmarkCircleOutline,
-      closeCircleOutline,
-      navigateCircleOutline,
-      imageOutline,
-      statsChartOutline,
       refreshOutline,
       logOutOutline,
     });
@@ -216,68 +132,49 @@ export class DashboardPage implements OnInit {
     this.cargarDashboard();
   }
 
-  // =====================
-  // UI actions
-  // =====================
-  irAOrdenes() {
-    this.router.navigateByUrl('/pyme/orders');
+  ionViewWillEnter() {
+    // por si el userData se setea después del login
+    this.cargarDatosUsuario();
   }
 
-  async refrescarDatos(event?: any) {
-    await this.cargarDashboard();
-    if (event?.target?.complete) event.target.complete();
-  }
+  cargarDatosUsuario() {
+    const raw = localStorage.getItem('userData');
+    if (!raw) return;
 
-  logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userData');
-    this.router.navigateByUrl('/login', { replaceUrl: true });
-  }
+    const u = JSON.parse(raw);
 
-  // =====================
-  // Data load
-  // =====================
-  async cargarDatosUsuario() {
-    const userData = localStorage.getItem('userData');
-    if (userData) {
-      const user = JSON.parse(userData);
-      this.empresaNombre = user.empresa_nombre || 'Mi Empresa';
-      this.codigoPyme = user.codigo_pyme || 'PYME001';
-    }
+    this.empresaNombre =
+      u.empresa_nombre ??
+      u.razon_social ??
+      u.empresaNombre ??
+      this.empresaNombre;
+
+    this.codigoPyme =
+      u.codigo_pyme ??
+      u.codigoPyme ??
+      u.pyme_codigo ??
+      this.codigoPyme;
   }
 
   async cargarDashboard() {
-    try {
-      await Promise.all([
-        this.cargarMetricas(),
-        this.cargarProductos(),
-        // si luego conectas órdenes/estadísticas reales, las reactivas
-        // this.cargarOrdenes(),
-        // this.cargarEstadisticas(),
-      ]);
-    } catch (error) {
-      console.error('Error al cargar dashboard:', error);
-    }
+    await Promise.all([this.cargarMetricas(), this.cargarProductos()]);
   }
 
   async cargarMetricas() {
     try {
       const response = await fetch('/api/pyme/dashboard/metrics', {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       const data = await response.json();
       this.metrics = data;
-    } catch (error) {
-      console.error('Error al cargar métricas:', error);
+    } catch (e) {
       // fallback dev
       this.metrics = {
-        productosActivos: 247,
-        ordenesActivas: 18,
-        volumenOcupado: 24.8,
-        volumenTotal: 37,
-        stockBajo: 5,
+        productosActivos: this.productos.length || 0,
+        ordenesActivas: 0,
+        volumenOcupado: 0,
+        volumenTotal: 1,
+        stockBajo: 0,
       };
     }
   }
@@ -285,82 +182,40 @@ export class DashboardPage implements OnInit {
   async cargarProductos() {
     try {
       const response = await fetch('/api/pyme/productos', {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       const data = await response.json();
 
-      this.productos = Array.isArray(data) ? data : [];
+      this.productos = data || [];
       this.productosFiltrados = [...this.productos];
 
-      this.categorias = [
-        ...new Set(this.productos.map((p) => p.categoria).filter(Boolean)),
-      ];
-
-      // aplica búsqueda actual (si había)
-      this.filtrarProductos();
-    } catch (error) {
-      console.error('Error al cargar productos:', error);
+      // recalcula métricas simples si quieres
+      this.metrics.productosActivos = this.productos.length;
+      this.metrics.stockBajo = this.productos.filter(
+        (p) => (p.cantidad_disponible ?? 0) <= (p.stock_minimo ?? 0)
+      ).length;
+    } catch (e) {
       this.productos = [];
       this.productosFiltrados = [];
     }
   }
 
-  // =====================
-  // Modal crear producto
-  // =====================
-  async abrirModalCrearProducto() {
-    try {
-      console.log('CLICK -> abrirModalCrearProducto');
-
-      const modal = await this.modalCtrl.create({
-        component: ProductoModalComponent,
-      });
-
-      await modal.present();
-
-      const { data } = await modal.onWillDismiss();
-
-      if (data?.created) {
-        await this.cargarProductos();
-        this.vistaActiva = 'inventario';
-      }
-    } catch (e) {
-      console.error('Error abriendo modal', e);
-    }
-  }
-
-  // =====================
-  // Filtros inventario
-  // =====================
   filtrarProductos() {
     const term = (this.searchTerm || '').trim().toLowerCase();
-
-    this.productosFiltrados = (this.productos || []).filter((p) => {
-      const matchTerm =
-        !term ||
-        (p.nombre ?? '').toLowerCase().includes(term) ||
-        (p.sku ?? '').toLowerCase().includes(term) ||
-        ((p.codigo_barras ?? '') as string).toLowerCase().includes(term);
-
-      const matchCat =
-        this.categoriaSeleccionada === 'todas' ||
-        !p.categoria ||
-        p.categoria === this.categoriaSeleccionada;
-
-      return matchTerm && matchCat;
+    if (!term) {
+      this.productosFiltrados = [...this.productos];
+      return;
+    }
+    this.productosFiltrados = this.productos.filter((p) => {
+      const n = (p.nombre ?? '').toLowerCase();
+      const sku = (p.sku ?? '').toLowerCase();
+      return n.includes(term) || sku.includes(term);
     });
   }
 
-  // =====================
-  // Helpers volumen
-  // =====================
   get porcentajeVolumen(): number {
-    const total = Number(this.metrics?.volumenTotal ?? 0);
-    const ocupado = Number(this.metrics?.volumenOcupado ?? 0);
-    if (!total || total <= 0) return 0;
-    return (ocupado / total) * 100;
+    const total = this.metrics.volumenTotal || 1;
+    return (this.metrics.volumenOcupado / total) * 100;
   }
 
   getColorVolumen(): string {
@@ -370,13 +225,33 @@ export class DashboardPage implements OnInit {
     return 'danger';
   }
 
-  // =====================
-  // (Opcional) Cambiar vista
-  // =====================
-  cambiarVista(vista: 'resumen' | 'inventario') {
-    this.vistaActiva = vista;
+  async refrescarDatos(event?: any) {
+    await this.cargarDashboard();
+    if (event) event.target.complete();
+  }
+
+  irAOrdenes() {
+    this.router.navigateByUrl('/pyme/orders');
+  }
+
+  async abrirModalCrearProducto() {
+    const modal = await this.modalCtrl.create({
+      component: ProductoModalComponent,
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onWillDismiss();
+    if (data?.created) {
+      await this.cargarProductos();
+      this.vistaActiva = 'inventario';
+    }
+  }
+
+  logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userData');
+    this.router.navigateByUrl('/login', { replaceUrl: true });
   }
 }
-
-
 

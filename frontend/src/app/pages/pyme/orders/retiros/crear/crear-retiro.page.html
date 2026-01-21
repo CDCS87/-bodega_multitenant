@@ -9,42 +9,78 @@
 
 <ion-content class="ion-padding">
 
+  <!-- ===================== -->
   <!-- FORM -->
+  <!-- ===================== -->
+
+  <!-- 1) DIRECCIÓN -->
   <ion-card>
+    <ion-card-header>
+      <ion-card-title>Dirección de retiro</ion-card-title>
+    </ion-card-header>
+
     <ion-card-content>
-      <ion-item lines="none">
-        <ion-label position="stacked">Comuna</ion-label>
+      <ion-item>
+        <ion-label position="stacked">Comuna *</ion-label>
         <ion-input
           [(ngModel)]="form.comuna"
           placeholder="Ej: Providencia">
         </ion-input>
       </ion-item>
 
-      <ion-item lines="none">
-        <ion-label position="stacked">Dirección retiro</ion-label>
+      <ion-item>
+        <ion-label position="stacked">Dirección retiro *</ion-label>
         <ion-input
           [(ngModel)]="form.direccion"
           placeholder="Calle 123, depto...">
         </ion-input>
       </ion-item>
 
-      <ion-item lines="none">
-        <ion-label position="stacked">Rango horario</ion-label>
-        <ion-select [(ngModel)]="form.rango">
-          <ion-select-option value="CORTE_1">Corte 1 (11:00) • hoy tarde</ion-select-option>
-          <ion-select-option value="CORTE_2">Corte 2 (18:00) • mañana mañana</ion-select-option>
-        </ion-select>
-      </ion-item>
-
-      <ion-item lines="none">
+      <ion-item>
         <ion-label position="stacked">Referencia (opcional)</ion-label>
         <ion-input
           [(ngModel)]="form.referencia"
           placeholder="Ej: conserjería / local 12">
         </ion-input>
       </ion-item>
+    </ion-card-content>
+  </ion-card>
 
-      <ion-item lines="none">
+  <!-- 2) VENTANA / RANGO -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Ventana de retiro</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-item>
+        <ion-label position="stacked">Rango horario *</ion-label>
+        <ion-select [(ngModel)]="form.rango" placeholder="Selecciona un rango">
+          <ion-select-option value="CORTE_1">
+            Corte 1 (11:00) • hoy tarde
+          </ion-select-option>
+          <ion-select-option value="CORTE_2">
+            Corte 2 (18:00) • mañana mañana
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-text color="medium">
+        <p style="margin: 8px 4px 0 4px; font-size: 13px;">
+          El rango define la ventana en que el transportista puede retirar.
+        </p>
+      </ion-text>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- 3) NOTAS -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Notas</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-item>
         <ion-label position="stacked">Observaciones (opcional)</ion-label>
         <ion-textarea
           [(ngModel)]="form.observaciones"
@@ -53,19 +89,22 @@
         </ion-textarea>
       </ion-item>
 
-      <div class="actions">
-        <ion-button
-          expand="block"
-          [disabled]="loading || !form.comuna.trim() || !form.direccion.trim()"
-          (click)="submit()">
-          <ion-spinner *ngIf="loading" name="crescent" style="margin-right: 8px;"></ion-spinner>
-          Generar retiro y QR
-        </ion-button>
-      </div>
+      <ion-button
+        expand="block"
+        style="margin-top: 12px;"
+        [disabled]="loading || !form.comuna.trim() || !form.direccion.trim() || !form.rango"
+        (click)="submit()">
+        @if (loading) {
+          <ion-spinner name="crescent" style="margin-right: 8px;"></ion-spinner>
+        }
+        Generar retiro y QR
+      </ion-button>
     </ion-card-content>
   </ion-card>
 
+  <!-- ===================== -->
   <!-- RESULTADO -->
+  <!-- ===================== -->
   <ion-card *ngIf="creado">
     <ion-card-content>
       <div class="result-title">Retiro creado</div>
@@ -108,5 +147,6 @@
   </ion-card>
 
 </ion-content>
+
 
 

@@ -25,6 +25,7 @@ type KV = { key: string; value: string };
 })
 export class ProductoModalComponent {
   nombre = '';
+  codigoBarras = '';
   sku = '';
   descripcionTexto = '';
 
@@ -73,9 +74,21 @@ export class ProductoModalComponent {
 
   private validate(): { ok: boolean; message?: string } {
     if (!this.nombre.trim()) return { ok: false, message: 'El nombre es obligatorio.' };
-    if (this.sku.trim() && this.sku.trim().length < 3) {
-      return { ok: false, message: 'El SKU debe tener al menos 3 caracteres (o déjalo vacío).' };
-    }
+    const cb = this.codigoBarras.trim();
+    const sku = this.sku.trim();
+
+      if (!cb && !sku) {
+        return { ok: false, message: 'Debes ingresar código de barras o SKU (al menos uno).' };
+      }
+
+      if (cb && cb.length < 5) {
+        return { ok: false, message: 'El código de barras parece inválido.' };
+      }
+
+      if (sku && sku.length < 3) {
+        return { ok: false, message: 'El SKU debe tener al menos 3 caracteres.' };
+      }
+
     try { this.buildCaracteristicas(); } catch (e: any) {
       return { ok: false, message: e?.message || 'Error en características.' };
     }
@@ -103,13 +116,17 @@ export class ProductoModalComponent {
       return;
     }
 
+    const cb = this.codigoBarras.trim();
+    const sku = this.sku.trim();
+
     const payload: any = {
       nombre: this.nombre.trim(),
       descripcion: this.descripcionTexto.trim() ? this.descripcionTexto.trim() : null,
-      caracteristicas_especificas: caracteristicas,
+      caracteristicas_especificas: caracteristicas
     };
 
-    if (this.sku.trim()) payload.sku = this.sku.trim();
+    if (cb) payload.codigo_barras = cb;
+    if (sku) payload.sku = sku;
 
     this.productService.createProduct(payload).subscribe({
       next: (created: Product) => {
@@ -120,6 +137,7 @@ export class ProductoModalComponent {
         this.saving = false;
         this.errorMsg = err?.error?.message || 'No se pudo crear el producto';
       }
+      
     });
   }
 }
