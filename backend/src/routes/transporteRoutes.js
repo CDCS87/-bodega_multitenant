@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-
 const transporteController = require('../controllers/transporteController');
 const upload = require('../config/upload');
 const { authMiddleware, requireRole } = require('../middlewares/authMiddleware');

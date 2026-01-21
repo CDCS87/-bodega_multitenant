@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const retiroController = require('../controllers/retiroController');
-const auth = require('../middlewares/authMiddleware');
+const { authMiddleware: auth } = require('../middlewares/authMiddleware');
 
 router.post('/', auth, retiroController.create);
 
