@@ -1,1 +1,0 @@
-# quiero saber si realmente esta sync
