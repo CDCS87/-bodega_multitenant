@@ -12,7 +12,7 @@ const retiroRoutes = require('./routes/retiroRoutes');
 const despachoRoutes = require('./routes/despachoRoutes');
 const transporteRoutes = require('./routes/transporteRoutes');
 const adminRoutes = require('./routes/adminRoutes');
-
+const pymeRoutes = require('./routes/pymeRoutes');
 
 const app = express();
 
@@ -28,6 +28,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/retiros', retiroRoutes);
+app.use('/api/pyme', pymeRoutes);
 //app.use('/api/despachos', despachoRoutes);
 //app.use('/api/transporte', transporteRoutes);
 

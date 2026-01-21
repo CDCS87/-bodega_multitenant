@@ -1,4 +1,9 @@
 // GET /api/pyme/me
+const express = require('express');
+const router = express.Router();
+const pool = require('../db'); // o donde tengas tu pool
+const authMiddleware = require('../middleware/authMiddleware');
+
 router.get('/pyme/me', authMiddleware, async (req, res) => {
   try {
     const pymeId = req.user.pyme_id; // <- viene del token
@@ -19,3 +24,4 @@ router.get('/pyme/me', authMiddleware, async (req, res) => {
   }
 });
 
+module.exports = router;
