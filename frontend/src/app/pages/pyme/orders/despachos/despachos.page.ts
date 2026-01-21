@@ -10,10 +10,9 @@ import {
   IonInput, IonBadge,
   IonSkeletonText, IonList, IonText, IonSegment } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
+;
 
-// Si usas ionicons, puedes agregar iconos aquí (opcional):
-// import { addIcons } from 'ionicons';
-// import { addOutline, refreshOutline } from 'ionicons/icons';
+
 
 type Estado = 'ALL'|'SOLICITADO'|'EN_PREPARACION'|'PREPARADO'|'EN_TRANSITO'|'ENTREGADO'|'FALLIDO'|'CANCELADO';
 

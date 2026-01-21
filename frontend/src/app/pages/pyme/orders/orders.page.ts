@@ -1,29 +1,33 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {
-  IonCard, IonCardContent, IonButton, IonItem, IonLabel,
-  IonSelect, IonSelectOption, IonInput, IonBadge, IonNote, IonModal,
-  IonHeader, IonToolbar, IonTitle, IonButtons, IonContent
-} from '@ionic/angular/standalone';
+import { IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardContent, IonCardHeader, IonButton, IonItem, IonLabel, IonSelect, IonSelectOption, IonInput, IonBadge, IonNote, IonModal, IonDatetime, IonButtons, IonBackButton, IonCardTitle, IonGrid, IonRow, IonCol } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 
-type Tipo = 'ALL'|'DESPACHO'|'RETIRO';
-type Estado = 'ALL'|'SOLICITADO'|'EN_PREPARACION'|'PREPARADO'|'EN_TRANSITO'|'ENTREGADO'|'FALLIDO'|'CANCELADO';
+type Tipo = 'ALL' | 'RETIRO' | 'DESPACHO';
+type Estado =
+  | 'ALL'
+  | 'SOLICITADO'
+  | 'EN_PREPARACION'
+  | 'PREPARADO'
+  | 'EN_TRANSITO'
+  | 'ENTREGADO'
+  | 'CANCELADO';
 
 @Component({
-  selector: 'app-pyme-orders',
+  selector: 'app-orders',
   standalone: true,
-  imports: [
+  imports: [IonCardTitle,
     CommonModule, FormsModule,
-    IonContent, IonCard, IonCardContent, IonButton, IonItem, IonLabel,
-    IonSelect, IonSelectOption, IonInput, IonBadge, IonNote, IonModal,
-    IonHeader, IonToolbar, IonTitle, IonButtons
-  ],
-  templateUrl: './orders.page.html',
-  styleUrls: ['./orders.page.scss']
+    IonContent, IonHeader, IonToolbar, IonTitle,
+    IonCard, IonCardContent, IonCardHeader,
+    IonButton, IonItem, IonLabel, IonSelect,
+    IonSelectOption, IonInput, IonBadge, IonNote,
+    IonModal, IonDatetime, IonButtons, IonBackButton, IonGrid, IonHeader, IonRow, IonGrid, IonCol,IonRow],
+  templateUrl: './orders.page.html'
 })
 export class OrdersPage {
+
   loading = false;
 
   filters = {
@@ -34,11 +38,11 @@ export class OrdersPage {
     q: ''
   };
 
+  orders: any[] = [];
+
   dateModalOpen = false;
   tempDesde: string | null = null;
   tempHasta: string | null = null;
-
-  orders: Array<any> = [];
 
   private searchDebounce: any;
 
@@ -48,24 +52,33 @@ export class OrdersPage {
     this.reload();
   }
 
-  // ✅ RUTAS NUEVAS (ajústalas a tus routes reales)
+  // =====================
+  // Navegación
+  // =====================
   goToRetiro() {
-    this.router.navigateByUrl('/pyme/orders/retiros/crear');
+    this.router.navigate(['/pyme/orders/retiros/create']);
   }
 
   goToDespacho() {
-    this.router.navigateByUrl('/pyme/orders/despachos/crear');
+    this.router.navigate(['/pyme/orders/despachos/create']);
   }
 
-  // ✅ DETALLE SEGÚN TIPO
   openOrder(o: any) {
-    const tipo = (o.tipo ?? '').toUpperCase();
-    if (tipo === 'RETIRO') {
-      this.router.navigateByUrl(`/pyme/orders/retiros/${o.id}`);
-      return;
-    }
-    // default: despacho
-    this.router.navigateByUrl(`/pyme/orders/despachos/${o.id}`);
+    const base = o.tipo === 'RETIRO' ? 'retiros' : 'despachos';
+    this.router.navigate([`/pyme/orders/${base}/detalle/${o.id}`]);
+  }
+
+  // =====================
+  // Filtros
+  // =====================
+  onSearch() {
+    clearTimeout(this.searchDebounce);
+    this.searchDebounce = setTimeout(() => this.reload(), 300);
+  }
+
+  resetFilters() {
+    this.filters = { tipo:'ALL', estado:'ALL', desde:null, hasta:null, q:'' };
+    this.reload();
   }
 
   openDateModal() {
@@ -81,64 +94,43 @@ export class OrdersPage {
     this.reload();
   }
 
-  // ✅ limpia solo el modal (no aplicado)
-  clearDates() {
-    this.tempDesde = null;
-    this.tempHasta = null;
-  }
-
-  // ✅ limpia filtro aplicado + recarga
-  clearAppliedDates() {
-    this.filters.desde = null;
-    this.filters.hasta = null;
-    this.reload();
-  }
-
-  resetFilters() {
-    this.filters = { tipo: 'ALL', estado: 'ALL', desde: null, hasta: null, q: '' };
-    this.reload();
-  }
-
-  onSearch() {
-    clearTimeout(this.searchDebounce);
-    this.searchDebounce = setTimeout(() => this.reload(), 350);
-  }
-
+  // =====================
+  // Carga (mock por ahora)
+  // =====================
   async reload() {
     this.loading = true;
 
-    try {
-      // TODO: llamar API real
-      // this.orders = await this.ordersService.list(this.filters);
+    // 👉 Aquí luego conectas backend real
+    this.orders = [];
 
-      this.orders = []; // mock
-    } finally {
-      this.loading = false;
-    }
+    this.loading = false;
   }
 
+  // =====================
+  // Helpers UI
+  // =====================
   badgeColor(estado: string) {
-    switch (estado) {
-      case 'ENTREGADO': return 'success';
-      case 'EN_TRANSITO': return 'tertiary';
-      case 'PREPARADO': return 'primary';
-      case 'EN_PREPARACION': return 'warning';
-      case 'FALLIDO': return 'danger';
-      case 'CANCELADO': return 'medium';
-      default: return 'secondary';
-    }
+    const map: any = {
+      SOLICITADO: 'medium',
+      EN_PREPARACION: 'warning',
+      PREPARADO: 'primary',
+      EN_TRANSITO: 'tertiary',
+      ENTREGADO: 'success',
+      CANCELADO: 'dark'
+    };
+    return map[estado] || 'medium';
   }
 
   labelEstado(estado: string) {
-    const map: Record<string,string> = {
+    const map: any = {
       SOLICITADO: 'Solicitado',
       EN_PREPARACION: 'En preparación',
       PREPARADO: 'Preparado',
       EN_TRANSITO: 'En tránsito',
       ENTREGADO: 'Entregado',
-      FALLIDO: 'Fallido',
       CANCELADO: 'Cancelado'
     };
-    return map[estado] ?? estado;
+    return map[estado] || estado;
   }
 }
+

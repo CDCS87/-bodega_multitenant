@@ -1,114 +1,125 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/pyme/dashboard"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Órdenes</ion-title>
+  </ion-toolbar>
+</ion-header>
+
 <ion-content class="ion-padding">
 
-  <!-- 1) Acciones -->
-  <div class="actions-grid">
-    <ion-card class="action-card">
-      <ion-card-content>
-        <div class="action-title">Solicitar Retiro</div>
-        <div class="action-sub">Retiro de mercadería hacia bodega</div>
-        <ion-button expand="block" (click)="goToRetiro()">
-          Solicitar Retiro
-        </ion-button>
-      </ion-card-content>
-    </ion-card>
-
-    <ion-card class="action-card">
-      <ion-card-content>
-        <div class="action-title">Solicitar Despacho</div>
-        <div class="action-sub">Despacho a cliente final</div>
-        <ion-button expand="block" (click)="goToDespacho()">
-          Solicitar Despacho
-        </ion-button>
-      </ion-card-content>
-    </ion-card>
-  </div>
-
-  <!-- 2) Filtros compactos -->
+  <!-- ===================== -->
+  <!-- 1) ACCIONES -->
+  <!-- ===================== -->
   <ion-card>
-    <ion-card-content class="filters">
-      <ion-item lines="none">
+    <ion-card-header>
+      <ion-card-title>Crear Orden</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-grid>
+        <ion-row>
+          <ion-col size="6">
+            <ion-button expand="block" (click)="goToRetiro()">
+              Solicitar Retiro
+            </ion-button>
+          </ion-col>
+
+          <ion-col size="6">
+            <ion-button expand="block" fill="outline" (click)="goToDespacho()">
+              Solicitar Despacho
+            </ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- ===================== -->
+  <!-- 2) FILTROS COMPACTOS -->
+  <!-- ===================== -->
+  <ion-card>
+    <ion-card-content>
+
+      <ion-item>
         <ion-label>Tipo</ion-label>
-        <ion-select [(ngModel)]="filters.tipo">
-          <ion-select-option value="ALL">Todos</ion-select-option>
-          <ion-select-option value="DESPACHO">Despacho</ion-select-option>
+        <ion-select [(ngModel)]="filters.tipo" (ionChange)="reload()">
+          <ion-select-option value="ALL">Todas</ion-select-option>
           <ion-select-option value="RETIRO">Retiro</ion-select-option>
+          <ion-select-option value="DESPACHO">Despacho</ion-select-option>
         </ion-select>
       </ion-item>
 
-      <ion-item lines="none">
+      <ion-item>
         <ion-label>Estado</ion-label>
-        <ion-select [(ngModel)]="filters.estado">
+        <ion-select [(ngModel)]="filters.estado" (ionChange)="reload()">
           <ion-select-option value="ALL">Todos</ion-select-option>
           <ion-select-option value="SOLICITADO">Solicitado</ion-select-option>
           <ion-select-option value="EN_PREPARACION">En preparación</ion-select-option>
           <ion-select-option value="PREPARADO">Preparado</ion-select-option>
           <ion-select-option value="EN_TRANSITO">En tránsito</ion-select-option>
           <ion-select-option value="ENTREGADO">Entregado</ion-select-option>
-          <ion-select-option value="FALLIDO">Fallido</ion-select-option>
           <ion-select-option value="CANCELADO">Cancelado</ion-select-option>
         </ion-select>
       </ion-item>
 
-      <ion-item lines="none" button detail="false" (click)="openDateModal()">
+      <ion-item button detail="false" (click)="openDateModal()">
         <ion-label>Fechas</ion-label>
         <ion-note slot="end">
-          {{ filters.desde ? (filters.desde | date:'dd/MM/yyyy') : 'Desde' }}
-          -
-          {{ filters.hasta ? (filters.hasta | date:'dd/MM/yyyy') : 'Hasta' }}
+          {{ filters.desde || 'Desde' }} - {{ filters.hasta || 'Hasta' }}
         </ion-note>
       </ion-item>
 
-      <ion-button
-        *ngIf="filters.desde || filters.hasta"
-        size="small"
-        fill="clear"
-        (click)="clearAppliedDates()">
-            Quitar fechas
-      </ion-button>
-
-
-      <ion-item lines="none">
+      <ion-item>
         <ion-label position="stacked">Buscar</ion-label>
         <ion-input
-          placeholder="OD-2026-0012 / destinatario..."
+          placeholder="Código, cliente..."
           [(ngModel)]="filters.q"
           (ionInput)="onSearch()">
         </ion-input>
       </ion-item>
 
-      <div class="filter-actions">
-        <ion-button fill="outline" (click)="resetFilters()">Limpiar</ion-button>
-        <ion-button (click)="reload()">Aplicar</ion-button>
-      </div>
+      <ion-button expand="block" fill="outline" (click)="resetFilters()">
+        Limpiar filtros
+      </ion-button>
+
     </ion-card-content>
   </ion-card>
 
-  <!-- 3) Historial -->
-  <div class="section-title">Historial de Órdenes</div>
+  <!-- ===================== -->
+  <!-- 3) HISTORIAL -->
+  <!-- ===================== -->
+  <div class="ion-margin-top">
+    <h3>Historial de Órdenes</h3>
+  </div>
 
-  <ion-card *ngFor="let o of orders" class="order-card" (click)="openOrder(o)">
+  <ion-card *ngFor="let o of orders" (click)="openOrder(o)">
     <ion-card-content>
-      <div class="order-row">
-        <div class="order-code">{{ o.codigo }}</div>
-        <ion-badge [color]="badgeColor(o.estado)">{{ labelEstado(o.estado) }}</ion-badge>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <strong>{{ o.codigo }}</strong>
+        <ion-badge [color]="badgeColor(o.estado)">
+          {{ labelEstado(o.estado) }}
+        </ion-badge>
       </div>
 
-      <div class="order-meta">
-        <span class="pill">{{ o.tipo }}</span>
-        <span>{{ o.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
-        <span *ngIf="o.destino">• {{ o.destino }}</span>
-        <span *ngIf="o.items">• {{ o.items }} items</span>
-      </div>
+      <small>
+        {{ o.tipo }} · {{ o.fecha | date:'dd/MM/yyyy HH:mm' }}
+      </small>
     </ion-card-content>
   </ion-card>
 
   <ion-card *ngIf="!loading && orders.length === 0">
-    <ion-card-content>No hay órdenes con esos filtros.</ion-card-content>
+    <ion-card-content>
+      No hay órdenes con los filtros seleccionados.
+    </ion-card-content>
   </ion-card>
 
 </ion-content>
 
-<!-- Modal de fechas (no visible hasta abrir) -->
+<!-- ===================== -->
+<!-- MODAL FECHAS -->
+<!-- ===================== -->
 <ion-modal [isOpen]="dateModalOpen" (didDismiss)="dateModalOpen=false">
   <ng-template>
     <ion-header>
@@ -131,8 +142,7 @@
         <ion-datetime presentation="date" [(ngModel)]="tempHasta"></ion-datetime>
       </ion-item>
 
-      <ion-button expand="block" (click)="applyDates()">Aplicar fechas</ion-button>
-      <ion-button expand="block" fill="outline" (click)="clearDates()">Limpiar fechas</ion-button>
+      <ion-button expand="block" (click)="applyDates()">Aplicar</ion-button>
     </ion-content>
   </ng-template>
 </ion-modal>

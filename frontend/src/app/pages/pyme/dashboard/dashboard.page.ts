@@ -60,6 +60,8 @@ import {
 } from 'ionicons/icons';
 import { ProductService } from '../../../services/product.service';
 import { Router } from '@angular/router';
+import { ModalController } from '@ionic/angular';
+import { ProductoModalComponent } from '../../../components/producto-modal.component';
 
 interface DashboardMetrics {
   productosActivos: number;
@@ -135,19 +137,11 @@ interface Estadistica {
     IonRefresher,
     IonRefresherContent,
     IonSearchbar,
-    IonSelect,
-    IonSelectOption,
     IonList,
     IonItem,
-    IonItemSliding,
-    IonItemOptions,
-    IonItemOption,
-    IonChip,
-    IonModal,
-    IonDatetime,
     IonFab,
-    IonFabButton,
-  ],
+    IonFabButton
+],
 })
 export class DashboardPage implements OnInit {
   // Datos de la empresa
@@ -194,33 +188,38 @@ export class DashboardPage implements OnInit {
   ordenSeleccionada: Orden | null = null;
 
   constructor(
-    private productService: ProductService,
-    private router: Router
-  ) {
-    addIcons({
-      cubeOutline,
-      documentTextOutline,
-      trendingUpOutline,
-      alertCircleOutline,
-      addOutline,
-      downloadOutline,
-      calendarOutline,
-      filterOutline,
-      searchOutline,
-      timeOutline,
-      locationOutline,
-      checkmarkCircleOutline,
-      closeCircleOutline,
-      navigateCircleOutline,
-      imageOutline,
-      statsChartOutline,
-      refreshOutline,
-    });
-  }
+  private productService: ProductService,
+  private router: Router,
+  private modalCtrl: ModalController
+) {
+  addIcons({
+    cubeOutline,
+    documentTextOutline,
+    trendingUpOutline,
+    alertCircleOutline,
+    addOutline,
+    downloadOutline,
+    calendarOutline,
+    filterOutline,
+    searchOutline,
+    timeOutline,
+    locationOutline,
+    checkmarkCircleOutline,
+    closeCircleOutline,
+    navigateCircleOutline,
+    imageOutline,
+    statsChartOutline,
+    refreshOutline,
+  });
+}
 
   ngOnInit() {
     this.cargarDatosUsuario();
     this.cargarDashboard();
+  }
+
+    irAOrdenes() {
+    this.router.navigateByUrl('/pyme/orders');
   }
 
   async cargarDatosUsuario() {
@@ -288,6 +287,21 @@ export class DashboardPage implements OnInit {
       console.error('Error al cargar productos:', error);
     }
   }
+
+async abrirModalCrearProducto() {
+  const modal = await this.modalCtrl.create({
+    component: ProductoModalComponent
+  });
+
+  await modal.present();
+  const { data } = await modal.onWillDismiss();
+
+  if (data?.created) {
+    await this.cargarProductos();
+    this.vistaActiva = 'inventario';
+  }
+}
+
 
   async cargarOrdenes() {
     try {

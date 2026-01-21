@@ -8,10 +8,9 @@ export interface CrearRetiroPayload {
   comuna: string;
   direccion: string;
   rango: RangoRetiro;
-
-  // si aún no estás mandando detalle, déjalo opcional
+// para el detalle del retiro
   items?: Array<{
-    producto_id: number;   // 👈 ideal number (tu DB usa int)
+    producto_id: number;  
     cantidad: number;
   }>;
 

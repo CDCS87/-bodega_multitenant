@@ -3,7 +3,9 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
+
     <ion-title>Mi Inventario</ion-title>
+
     <ion-buttons slot="end">
       <ion-button (click)="refrescarDatos()">
         <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
@@ -11,107 +13,71 @@
     </ion-buttons>
   </ion-toolbar>
 
-  <!-- Segmented Control para cambiar vistas -->
+  <!-- Segmentos -->
   <ion-toolbar>
-    <ion-segment
-      [(ngModel)]="vistaActiva"
-      (ionChange)="cambiarVista($any($event.detail.value))"
-    >
+    <ion-segment [(ngModel)]="vistaActiva">
       <ion-segment-button value="resumen">
         <ion-label>Resumen</ion-label>
       </ion-segment-button>
       <ion-segment-button value="inventario">
         <ion-label>Inventario</ion-label>
       </ion-segment-button>
-      <ion-segment-button value="ordenes">
-        <ion-label>Órdenes</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="estadisticas">
-        <ion-label>Estadísticas</ion-label>
-      </ion-segment-button>
     </ion-segment>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <!-- Pull to refresh -->
+
+  <!-- REFRESH -->
   <ion-refresher slot="fixed" (ionRefresh)="refrescarDatos($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <!-- VISTA: RESUMEN -->
+  <!-- ===================== -->
+  <!-- VISTA RESUMEN -->
+  <!-- ===================== -->
   <div *ngIf="vistaActiva === 'resumen'" class="dashboard-container">
-    <!-- Welcome Section -->
-    <ion-card class="welcome-card">
+
+    <!-- Bienvenida -->
+    <ion-card>
       <ion-card-content>
-        <div class="welcome-header">
-          <div>
-            <p class="welcome-text">Bienvenido de vuelta</p>
-            <h2 class="empresa-nombre">{{ empresaNombre }}</h2>
-            <p class="codigo-pyme">{{ codigoPyme }}</p>
-          </div>
-          <ion-icon name="cube-outline" class="welcome-icon"></ion-icon>
-        </div>
+        <h2>{{ empresaNombre }}</h2>
+        <p>{{ codigoPyme }}</p>
       </ion-card-content>
     </ion-card>
 
-    <!-- Métricas principales -->
+    <!-- Métricas -->
     <ion-grid>
       <ion-row>
         <ion-col size="6">
-          <ion-card class="metric-card">
+          <ion-card>
             <ion-card-content>
-              <div class="metric-icon-container" style="background-color: #5260ff20">
-                <ion-icon name="cube-outline" style="color: #5260ff"></ion-icon>
-              </div>
-              <h2 class="metric-value">{{ metrics.productosActivos }}</h2>
-              <p class="metric-label">Productos activos</p>
+              <h2>{{ metrics.productosActivos }}</h2>
+              <p>Productos activos</p>
             </ion-card-content>
           </ion-card>
         </ion-col>
 
         <ion-col size="6">
-          <ion-card class="metric-card">
+          <ion-card>
             <ion-card-content>
-              <div class="metric-icon-container" style="background-color: #eb44ff20">
-                <ion-icon name="document-text-outline" style="color: #eb44ff"></ion-icon>
-              </div>
-              <h2 class="metric-value">{{ metrics.ordenesActivas }}</h2>
-              <p class="metric-label">Órdenes activas</p>
+              <h2>{{ metrics.ordenesActivas }}</h2>
+              <p>Órdenes activas</p>
             </ion-card-content>
           </ion-card>
         </ion-col>
 
-        <ion-col size="6">
-          <ion-card class="metric-card volumen-card">
+        <ion-col size="12">
+          <ion-card>
             <ion-card-content>
-              <div class="metric-icon-container" style="background-color: #10dc6020">
-                <ion-icon name="trending-up-outline" style="color: #10dc60"></ion-icon>
-              </div>
-              <h2 class="metric-value">{{ porcentajeVolumen | number: '1.0-0' }}%</h2>
-              <p class="metric-label">Volumen ocupado</p>
-              <div class="volumen-info">
-                <small>{{ metrics.volumenOcupado }} m³ / {{ metrics.volumenTotal }} m³</small>
-              </div>
+              <p>Volumen ocupado</p>
               <ion-progress-bar
                 [value]="porcentajeVolumen / 100"
-                [color]="getColorVolumen()"
-              ></ion-progress-bar>
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
-
-        <ion-col size="6">
-          <ion-card class="metric-card">
-            <ion-card-content>
-              <div
-                class="metric-icon-container"
-                style="background-color: #ffce0020"
-              >
-                <ion-icon name="alert-circle-outline" style="color: #ffce00"></ion-icon>
-              </div>
-              <h2 class="metric-value">{{ metrics.stockBajo }}</h2>
-              <p class="metric-label">Stock bajo</p>
+                [color]="getColorVolumen()">
+              </ion-progress-bar>
+              <small>
+                {{ metrics.volumenOcupado }} / {{ metrics.volumenTotal }} m³
+              </small>
             </ion-card-content>
           </ion-card>
         </ion-col>
@@ -121,392 +87,97 @@
     <!-- Acciones rápidas -->
     <ion-card>
       <ion-card-header>
-        <ion-card-title>Acciones Rápidas</ion-card-title>
+        <ion-card-title>Acciones rápidas</ion-card-title>
       </ion-card-header>
+
       <ion-card-content>
         <ion-grid>
           <ion-row>
             <ion-col size="6">
-              <ion-button expand="block" (click)="irACrearOrden()">
-                <ion-icon slot="start" name="add-outline"></ion-icon>
-                Nueva Orden
+              <ion-button expand="block" (click)="irAOrdenes()">
+                <ion-icon slot="start" name="document-text-outline"></ion-icon>
+                Órdenes
               </ion-button>
             </ion-col>
+
             <ion-col size="6">
-              <ion-button expand="block" fill="outline" (click)="irAGestionProductos()">
+              <ion-button expand="block" fill="outline" (click)="vistaActiva='inventario'">
                 <ion-icon slot="start" name="cube-outline"></ion-icon>
-                Ver Inventario
+                Inventario
               </ion-button>
             </ion-col>
           </ion-row>
+
           <ion-row>
             <ion-col size="12">
-              <ion-button expand="block" fill="outline" (click)="exportarReporte('estadisticas')">
-                <ion-icon slot="start" name="download-outline"></ion-icon>
-                Exportar Reporte
+              <ion-button expand="block" color="primary" (click)="abrirModalCrearProducto()">
+                <ion-icon slot="start" name="add-outline"></ion-icon>
+                Crear producto
               </ion-button>
             </ion-col>
           </ion-row>
         </ion-grid>
       </ion-card-content>
     </ion-card>
-
-    <!-- Órdenes recientes -->
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Órdenes Recientes</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-list *ngIf="ordenes.length > 0; else noOrdenes">
-          <ion-item
-            *ngFor="let orden of ordenes.slice(0, 5)"
-            (click)="verDetalleOrden(orden)"
-            button
-          >
-            <ion-icon
-              [name]="orden.tipo === 'DESPACHO' ? 'navigate-circle-outline' : 'cube-outline'"
-              slot="start"
-              [color]="getColorEstado(orden.estado)"
-            ></ion-icon>
-            <ion-label>
-              <h3>{{ orden.codigo }}</h3>
-              <p>{{ orden.tipo }} - {{ orden.total_productos }} productos</p>
-            </ion-label>
-            <ion-chip [color]="getColorEstado(orden.estado)" slot="end">
-              {{ getTextoEstado(orden.estado) }}
-            </ion-chip>
-          </ion-item>
-        </ion-list>
-        <ng-template #noOrdenes>
-          <p class="no-data">No hay órdenes registradas</p>
-        </ng-template>
-      </ion-card-content>
-    </ion-card>
   </div>
 
-  <!-- VISTA: INVENTARIO -->
+  <!-- ===================== -->
+  <!-- VISTA INVENTARIO -->
+  <!-- ===================== -->
   <div *ngIf="vistaActiva === 'inventario'" class="inventario-container">
-    <!-- Filtros de inventario -->
+
+    <!-- Filtros -->
     <ion-card>
       <ion-card-content>
         <ion-searchbar
           [(ngModel)]="searchTerm"
           (ionInput)="filtrarProductos()"
-          placeholder="Buscar producto..."
-          animated
-        ></ion-searchbar>
+          placeholder="Buscar producto...">
+        </ion-searchbar>
 
-        <ion-item>
-          <ion-label>Categoría</ion-label>
-          <ion-select
-            [(ngModel)]="categoriaSeleccionada"
-            (ionChange)="filtrarProductos()"
-            placeholder="Todas"
-          >
-            <ion-select-option value="todas">Todas</ion-select-option>
-            <ion-select-option *ngFor="let cat of categorias" [value]="cat">
-              {{ cat }}
-            </ion-select-option>
-          </ion-select>
-        </ion-item>
-
-        <ion-button expand="block" fill="outline" (click)="exportarReporte('inventario')">
-          <ion-icon slot="start" name="download-outline"></ion-icon>
-          Exportar Inventario
+        <ion-button expand="block" (click)="abrirModalCrearProducto()">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          Crear producto
         </ion-button>
       </ion-card-content>
     </ion-card>
 
-    <!-- Lista de productos -->
+    <!-- Lista productos -->
     <ion-card>
       <ion-card-header>
         <ion-card-title>
           Productos ({{ productosFiltrados.length }})
         </ion-card-title>
       </ion-card-header>
+
       <ion-card-content>
-        <ion-list *ngIf="productosFiltrados.length > 0; else noProductos">
-          <ion-item-sliding *ngFor="let producto of productosFiltrados">
-            <ion-item (click)="verDetalleProducto(producto)">
-              <ion-label>
-                <h2>{{ producto.nombre }}</h2>
-                <p>SKU: {{ producto.sku }}</p>
-                <p>Categoría: {{ producto.categoria }}</p>
-              </ion-label>
-              <div slot="end" class="stock-info">
-                <ion-badge
-                  [color]="
-                    producto.cantidad_disponible <= producto.stock_minimo
-                      ? 'danger'
-                      : 'success'
-                  "
-                >
-                  {{ producto.cantidad_disponible }}
-                </ion-badge>
-                <small>disponible</small>
-                <ion-badge color="warning" *ngIf="producto.cantidad_reservada > 0">
-                  {{ producto.cantidad_reservada }} reservado
-                </ion-badge>
-              </div>
-            </ion-item>
-            <ion-item-options side="end">
-              <ion-item-option color="primary" (click)="verDetalleProducto(producto)">
-                Ver
-              </ion-item-option>
-            </ion-item-options>
-          </ion-item-sliding>
-        </ion-list>
-        <ng-template #noProductos>
-          <p class="no-data">No se encontraron productos</p>
-        </ng-template>
-      </ion-card-content>
-    </ion-card>
-  </div>
-
-  <!-- VISTA: ÓRDENES -->
-  <div *ngIf="vistaActiva === 'ordenes'" class="ordenes-container">
-    <!-- Filtros de órdenes -->
-    <ion-card>
-      <ion-card-content>
-        <ion-grid>
-          <ion-row>
-            <ion-col size="6">
-              <ion-item>
-                <ion-label>Tipo</ion-label>
-                <ion-select
-                  [(ngModel)]="tipoOrdenFiltro"
-                  (ionChange)="filtrarOrdenes()"
-                >
-                  <ion-select-option value="TODAS">Todas</ion-select-option>
-                  <ion-select-option value="DESPACHO">Despacho</ion-select-option>
-                  <ion-select-option value="RETIRO">Retiro</ion-select-option>
-                </ion-select>
-              </ion-item>
-            </ion-col>
-            <ion-col size="6">
-              <ion-item>
-                <ion-label>Estado</ion-label>
-                <ion-select
-                  [(ngModel)]="estadoOrdenFiltro"
-                  (ionChange)="filtrarOrdenes()"
-                >
-                  <ion-select-option value="TODAS">Todos</ion-select-option>
-                  <ion-select-option value="SOLICITADO">Solicitado</ion-select-option>
-                  <ion-select-option value="EN_PREPARACION">En Preparación</ion-select-option>
-                  <ion-select-option value="PREPARADO">Preparado</ion-select-option>
-                  <ion-select-option value="EN_TRANSITO">En Tránsito</ion-select-option>
-                  <ion-select-option value="ENTREGADO">Entregado</ion-select-option>
-                  <ion-select-option value="FALLIDO">Fallido</ion-select-option>
-                  <ion-select-option value="CANCELADO">Cancelado</ion-select-option>
-                </ion-select>
-              </ion-item>
-            </ion-col>
-          </ion-row>
-
-          <ion-row>
-            <ion-col size="6">
-              <ion-item>
-                <ion-label position="stacked">Fecha inicio</ion-label>
-                <ion-datetime
-                  [(ngModel)]="fechaInicio"
-                  (ionChange)="filtrarOrdenes()"
-                  presentation="date"
-                  display-format="DD/MM/YYYY"
-                ></ion-datetime>
-              </ion-item>
-            </ion-col>
-            <ion-col size="6">
-              <ion-item>
-                <ion-label position="stacked">Fecha fin</ion-label>
-                <ion-datetime
-                  [(ngModel)]="fechaFin"
-                  (ionChange)="filtrarOrdenes()"
-                  presentation="date"
-                  display-format="DD/MM/YYYY"
-                ></ion-datetime>
-              </ion-item>
-            </ion-col>
-          </ion-row>
-        </ion-grid>
-
-        <ion-button expand="block" fill="outline" (click)="exportarReporte('ordenes')">
-          <ion-icon slot="start" name="download-outline"></ion-icon>
-          Exportar Órdenes
-        </ion-button>
-      </ion-card-content>
-    </ion-card>
-
-    <!-- Lista de órdenes -->
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>
-          Órdenes ({{ ordenesFiltradas.length }})
-        </ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-list *ngIf="ordenesFiltradas.length > 0; else noOrdenesFiltradas">
-          <ion-item *ngFor="let orden of ordenesFiltradas" (click)="verDetalleOrden(orden)">
-            <ion-icon
-              [name]="orden.tipo === 'DESPACHO' ? 'navigate-circle-outline' : 'cube-outline'"
-              slot="start"
-              [color]="getColorEstado(orden.estado)"
-            ></ion-icon>
+        <ion-list *ngIf="productosFiltrados.length; else sinProductos">
+          <ion-item *ngFor="let p of productosFiltrados">
             <ion-label>
-              <h2>{{ orden.codigo }}</h2>
-              <p>
-                <ion-chip [color]="orden.tipo === 'DESPACHO' ? 'primary' : 'secondary'">
-                  {{ orden.tipo }}
-                </ion-chip>
-              </p>
-              <p *ngIf="orden.nombre_cliente">Cliente: {{ orden.nombre_cliente }}</p>
-              <p *ngIf="orden.direccion_destino">
-                <ion-icon name="location-outline"></ion-icon>
-                {{ orden.direccion_destino }}
-              </p>
-              <p>
-                <ion-icon name="time-outline"></ion-icon>
-                {{ orden.fecha_creacion | date: 'dd/MM/yyyy HH:mm' }}
-              </p>
-              <p>{{ orden.total_productos }} productos</p>
+              <h2>{{ p.nombre }}</h2>
+              <p>SKU: {{ p.sku }}</p>
             </ion-label>
-            <div slot="end" class="orden-actions">
-              <ion-chip [color]="getColorEstado(orden.estado)">
-                {{ getTextoEstado(orden.estado) }}
-              </ion-chip>
-              <ion-button
-                *ngIf="orden.foto_evidencia"
-                fill="clear"
-                (click)="verEvidencia(orden); $event.stopPropagation()"
-              >
-                <ion-icon slot="icon-only" name="image-outline"></ion-icon>
-              </ion-button>
-            </div>
-          </ion-item>
-        </ion-list>
-        <ng-template #noOrdenesFiltradas>
-          <p class="no-data">No se encontraron órdenes con los filtros aplicados</p>
-        </ng-template>
-      </ion-card-content>
-    </ion-card>
-  </div>
 
-  <!-- VISTA: ESTADÍSTICAS -->
-  <div *ngIf="vistaActiva === 'estadisticas'" class="estadisticas-container">
-    <!-- Métricas del mes -->
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Resumen del Mes</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="estadistica-item">
-          <ion-icon name="document-text-outline" color="primary"></ion-icon>
-          <div class="estadistica-info">
-            <h3>{{ estadisticas.ordenesDelMes }}</h3>
-            <p>Órdenes procesadas</p>
-          </div>
-        </div>
-
-        <div class="estadistica-item">
-          <ion-icon name="time-outline" color="success"></ion-icon>
-          <div class="estadistica-info">
-            <h3>{{ estadisticas.tiempoPromedioEntrega }} días</h3>
-            <p>Tiempo promedio de entrega</p>
-          </div>
-        </div>
-      </ion-card-content>
-    </ion-card>
-
-    <!-- Productos más despachados -->
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Productos Más Despachados</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-list *ngIf="estadisticas.productosMasDespachados.length > 0; else noEstadisticas">
-          <ion-item *ngFor="let producto of estadisticas.productosMasDespachados; let i = index">
-            <ion-badge slot="start" [color]="i === 0 ? 'primary' : 'medium'">
-              {{ i + 1 }}
+            <ion-badge
+              slot="end"
+              [color]="p.cantidad_disponible <= p.stock_minimo ? 'danger' : 'success'">
+              {{ p.cantidad_disponible }}
             </ion-badge>
-            <ion-label>
-              <h3>{{ producto.nombre }}</h3>
-              <p>{{ producto.cantidad }} unidades despachadas</p>
-            </ion-label>
-            <ion-chip slot="end" color="tertiary">
-              {{ producto.cantidad }}
-            </ion-chip>
           </ion-item>
         </ion-list>
-        <ng-template #noEstadisticas>
-          <p class="no-data">No hay datos estadísticos disponibles</p>
+
+        <ng-template #sinProductos>
+          <p>No hay productos registrados</p>
         </ng-template>
       </ion-card-content>
     </ion-card>
-
-    <!-- Gráfico de volumen (placeholder) -->
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Ocupación de Volumen</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="volumen-chart">
-          <div class="chart-bar">
-            <div
-              class="chart-fill"
-              [style.width.%]="porcentajeVolumen"
-              [class.warning]="porcentajeVolumen >= 70 && porcentajeVolumen < 90"
-              [class.danger]="porcentajeVolumen >= 90"
-            ></div>
-          </div>
-          <div class="chart-info">
-            <span>{{ metrics.volumenOcupado }} m³ utilizados</span>
-            <span>{{ metrics.volumenTotal - metrics.volumenOcupado }} m³ disponibles</span>
-          </div>
-        </div>
-      </ion-card-content>
-    </ion-card>
-
-    <ion-button expand="block" (click)="exportarReporte('estadisticas')">
-      <ion-icon slot="start" name="download-outline"></ion-icon>
-      Exportar Reporte Completo
-    </ion-button>
   </div>
 
-  <!-- FAB para crear orden -->
+  <!-- FAB -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button (click)="irACrearOrden()">
+    <ion-fab-button (click)="irAOrdenes()">
       <ion-icon name="add-outline"></ion-icon>
     </ion-fab-button>
   </ion-fab>
 
-  <!-- Modal de evidencia fotográfica -->
-  <ion-modal
-    [isOpen]="mostrarModalEvidencia"
-    (didDismiss)="cerrarModalEvidencia()"
-  >
-    <ng-template>
-      <ion-header>
-        <ion-toolbar>
-          <ion-title>Evidencia de Entrega</ion-title>
-          <ion-buttons slot="end">
-            <ion-button (click)="cerrarModalEvidencia()">Cerrar</ion-button>
-          </ion-buttons>
-        </ion-toolbar>
-      </ion-header>
-      <ion-content>
-        <div class="evidencia-container">
-          <img [src]="evidenciaSeleccionada" alt="Evidencia de entrega" />
-          <ion-card *ngIf="ordenSeleccionada">
-            <ion-card-content>
-              <h3>{{ ordenSeleccionada.codigo }}</h3>
-              <p>Estado: {{ getTextoEstado(ordenSeleccionada.estado) }}</p>
-              <p>Fecha: {{ ordenSeleccionada.fecha_creacion | date: 'dd/MM/yyyy HH:mm' }}</p>
-              <p *ngIf="ordenSeleccionada.direccion_destino">
-                Dirección: {{ ordenSeleccionada.direccion_destino }}
-              </p>
-            </ion-card-content>
-          </ion-card>
-        </div>
-      </ion-content>
-    </ng-template>
-  </ion-modal>
 </ion-content>
