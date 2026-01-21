@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-
+import { environment } from '../../../../environments/environment';
 import {
   IonContent,
   IonHeader,
@@ -197,33 +197,27 @@ export class DashboardPage implements OnInit {
   // =========================
 async cargarDatosUsuario() {
   try {
-    const token = localStorage.getItem('token');
-    console.log('[PYME] token?', !!token);
+    const token = localStorage.getItem('token') || '';
 
-    const url = '/api/pyme/me';
-    console.log('[PYME] GET', url);
+    const res = await fetch(
+      `${environment.apiUrl}/api/pyme/me`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
 
-    console.log('[PYME] status', response.status);
+    const pyme = await res.json();
 
-    const text = await response.text();
-    console.log('[PYME] body', text);
-
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    const pyme = JSON.parse(text);
-
-    this.empresaNombre = pyme.razon_social || 'Mi Empresa';
-    this.codigoPyme = pyme.codigo_pyme || '';
-
-    console.log('[PYME] OK =>', this.empresaNombre, this.codigoPyme);
-  } catch (err) {
-    console.error('[PYME] Error cargando pyme', err);
+    this.empresaNombre = pyme.razon_social;
+    this.codigoPyme = pyme.codigo_pyme;
+  } catch (error) {
+    console.error('[PYME] Error cargando pyme', error);
     this.empresaNombre = 'Mi Empresa';
     this.codigoPyme = '';
   }
