@@ -167,8 +167,6 @@ export class DashboardPage implements OnInit {
     this.cargarDashboard();
   }
 
-  // ✅ IMPORTANTE: si vuelves al dashboard desde /pyme/orders,
-  // que quede en una vista real (no "ordenes")
   ionViewWillEnter() {
     if (this.vistaActiva === 'ordenes') this.vistaActiva = 'resumen';
     this.cargarDatosUsuario();
@@ -197,22 +195,23 @@ export class DashboardPage implements OnInit {
   // =========================
   // UserData (localStorage)
   // =========================
-  async cargarDatosUsuario() {
+async cargarDatosUsuario() {
   try {
-    const res = await fetch('/api/pyme/me', {
+    const response = await fetch('/api/pyme/me', {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`
       }
     });
 
-    if (!res.ok) throw new Error('No se pudo cargar pyme');
+    if (!response.ok) throw new Error('No se pudo cargar la pyme');
 
-    const pyme = await res.json();
+    const pyme = await response.json();
+
     this.empresaNombre = pyme.razon_social;
     this.codigoPyme = pyme.codigo_pyme;
 
-  } catch (e) {
-    console.error('Error cargando pyme', e);
+  } catch (err) {
+    console.error('Error cargando pyme', err);
     this.empresaNombre = 'Mi Empresa';
     this.codigoPyme = '';
   }
