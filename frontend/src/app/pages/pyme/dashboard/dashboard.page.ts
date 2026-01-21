@@ -197,7 +197,7 @@ export class DashboardPage implements OnInit {
   // =========================
 async cargarDatosUsuario() {
   try {
-    const token = localStorage.getItem('token') || '';
+    const token = localStorage.getItem('accesstoken') || '';
 
     const res = await fetch(
       `${environment.apiUrl}/api/pyme/me`,
