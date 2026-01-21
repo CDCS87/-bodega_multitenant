@@ -1,10 +1,13 @@
-require('dotenv').config();
-
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
+// 1. Traemos la conexión (como ya tenías)
 const sequelize = require('./config/database');
+
+// 2. ¡NUEVO! Importamos los modelos para que se activen las relaciones (hasMany, belongsTo)
+// Al hacer require('./models'), Node ejecuta automáticamente src/models/index.js
+require('./models'); 
 
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
@@ -40,6 +43,10 @@ async function start() {
   try {
     await sequelize.authenticate();
     console.log('✅ Conexión a PostgreSQL establecida con éxito.');
+
+    // Opcional: Esto crea las tablas si no existen. 
+    // Como usas un archivo SQL manual, mejor déjalo comentado o úsalo con cuidado.
+    // await sequelize.sync(); 
 
     app.listen(PORT, () => {
       console.log(`API corriendo en puerto ${PORT}`);
