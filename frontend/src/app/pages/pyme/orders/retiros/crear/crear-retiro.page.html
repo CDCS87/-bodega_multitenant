@@ -1,112 +1,71 @@
 <ion-header>
   <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/pyme/orders"></ion-back-button>
-    </ion-buttons>
     <ion-title>Solicitar Retiro</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
 
-  <!-- FORM -->
-  <ion-card>
-    <ion-card-content>
-      <ion-item lines="none">
-        <ion-label position="stacked">Comuna</ion-label>
-        <ion-input
-          [(ngModel)]="form.comuna"
-          placeholder="Ej: Providencia">
-        </ion-input>
-      </ion-item>
+  <ion-item>
+    <ion-label position="stacked">Comuna</ion-label>
+    <ion-input [(ngModel)]="comuna"></ion-input>
+  </ion-item>
 
-      <ion-item lines="none">
-        <ion-label position="stacked">Dirección retiro</ion-label>
-        <ion-input
-          [(ngModel)]="form.direccion"
-          placeholder="Calle 123, depto...">
-        </ion-input>
-      </ion-item>
+  <ion-item>
+    <ion-label position="stacked">Dirección de retiro</ion-label>
+    <ion-input [(ngModel)]="direccion"></ion-input>
+  </ion-item>
 
-      <ion-item lines="none">
-        <ion-label position="stacked">Rango horario</ion-label>
-        <ion-select [(ngModel)]="form.rango">
-          <ion-select-option value="CORTE_1">Corte 1 (11:00) • hoy tarde</ion-select-option>
-          <ion-select-option value="CORTE_2">Corte 2 (18:00) • mañana mañana</ion-select-option>
-        </ion-select>
-      </ion-item>
+  <ion-item>
+    <ion-label>Rango horario</ion-label>
+    <ion-select [(ngModel)]="rango">
+      <ion-select-option value="CORTE_1">Mañana</ion-select-option>
+      <ion-select-option value="CORTE_2">Tarde</ion-select-option>
+    </ion-select>
+  </ion-item>
 
-      <ion-item lines="none">
-        <ion-label position="stacked">Referencia (opcional)</ion-label>
-        <ion-input
-          [(ngModel)]="form.referencia"
-          placeholder="Ej: conserjería / local 12">
-        </ion-input>
-      </ion-item>
+  <ion-item>
+    <ion-label position="stacked">Buscar producto</ion-label>
+    <ion-input
+      [(ngModel)]="search"
+      (ionInput)="buscarProductos()"
+      placeholder="Nombre, SKU o código"
+    ></ion-input>
+  </ion-item>
 
-      <ion-item lines="none">
-        <ion-label position="stacked">Observaciones (opcional)</ion-label>
-        <ion-textarea
-          [(ngModel)]="form.observaciones"
-          autoGrow="true"
-          placeholder="Indicaciones, horario preferente, etc.">
-        </ion-textarea>
-      </ion-item>
+  <ion-button expand="block" fill="outline" (click)="abrirModalCrearProducto()">
+    + Crear producto
+  </ion-button>
 
-      <div class="actions">
-        <ion-button
-          expand="block"
-          [disabled]="loading || !form.comuna.trim() || !form.direccion.trim()"
-          (click)="submit()">
-          <ion-spinner *ngIf="loading" name="crescent" style="margin-right: 8px;"></ion-spinner>
-          Generar retiro y QR
-        </ion-button>
-      </div>
-    </ion-card-content>
-  </ion-card>
+  <ion-list *ngIf="productosFiltrados.length">
+    <ion-item *ngFor="let p of productosFiltrados" (click)="agregarProducto(p)">
+      {{ p.nombre }} — {{ p.sku }}
+    </ion-item>
+  </ion-list>
 
-  <!-- RESULTADO -->
-  <ion-card *ngIf="creado">
-    <ion-card-content>
-      <div class="result-title">Retiro creado</div>
+  <h3>Productos en retiro</h3>
 
-      <div class="row">
-        <div class="label">Estado</div>
-        <ion-badge [color]="creado.estado === 'ASIGNADO' ? 'success' : 'warning'">
-          {{ creado.estado === 'ASIGNADO' ? 'Asignado' : 'Pendiente' }}
-        </ion-badge>
-      </div>
+  <ion-list>
+    <ion-item *ngFor="let i of items; let idx = index">
+      <ion-label>
+        {{ i.nombre }}
+      </ion-label>
+      <ion-input type="number" [(ngModel)]="i.cantidad" min="1"></ion-input>
+      <ion-button color="danger" (click)="quitarProducto(idx)">
+        <ion-icon name="trash-outline"></ion-icon>
+      </ion-button>
+    </ion-item>
+  </ion-list>
 
-      <div class="row" *ngIf="creado.transportista">
-        <div class="label">Transportista</div>
-        <div class="value">{{ creado.transportista.nombre }}</div>
-      </div>
+  @if (errorMsg) {
+    <p style="color:red">{{ errorMsg }}</p>
+  }
 
-      <div class="row">
-        <div class="label">Rango</div>
-        <div class="value">{{ rangoLabel(creado.rango) }}</div>
-      </div>
-
-      <div class="code">
-        <div class="label">Código (QR)</div>
-        <div class="value mono">{{ creado.codigo }}</div>
-      </div>
-
-      <div class="qr" *ngIf="qrDataUrl">
-        <img [src]="qrDataUrl" alt="QR Retiro" />
-      </div>
-
-      <div class="result-actions">
-        <ion-button expand="block" (click)="imprimirQR()" [disabled]="!qrDataUrl">
-          Imprimir QR
-        </ion-button>
-        <ion-button expand="block" fill="outline" (click)="volverAOrdenes()">
-          Volver a Órdenes
-        </ion-button>
-      </div>
-    </ion-card-content>
-  </ion-card>
+  <ion-button expand="block" [disabled]="loading" (click)="crearRetiro()">
+    Confirmar Retiro
+  </ion-button>
 
 </ion-content>
+
 
 

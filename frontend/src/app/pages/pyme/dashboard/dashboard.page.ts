@@ -1,3 +1,4 @@
+import { AuthService } from '../../../services/auth.service';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -190,7 +191,8 @@ export class DashboardPage implements OnInit {
   constructor(
   private productService: ProductService,
   private router: Router,
-  private modalCtrl: ModalController
+  private modalCtrl: ModalController,
+  private authService: AuthService,
 ) {
   addIcons({
     cubeOutline,
@@ -488,6 +490,12 @@ async abrirModalCrearProducto() {
   cambiarVista(vista: 'resumen' | 'inventario' | 'ordenes' | 'estadisticas') {
     this.vistaActiva = vista;
   }
+  // Cerrar sesión
+  logout() {
+  this.authService.logout();
+  this.router.navigateByUrl('/login', { replaceUrl: true });
+}
+
 }
 
 

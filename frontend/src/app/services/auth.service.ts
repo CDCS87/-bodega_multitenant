@@ -34,11 +34,11 @@ export class AuthService {
   private readonly REFRESH_TOKEN_KEY = 'refreshToken';
   private readonly USER_KEY = 'user';
 
-  // ✅ Observable para estado de autenticación
+  //  Observable para estado de autenticación
   private authState = new BehaviorSubject<boolean>(this.isLoggedIn());
   public authState$ = this.authState.asObservable();
 
-  // ✅ Timer para renovar token automáticamente
+  //  Timer para renovar token automáticamente
   private refreshTimer: any;
 
   constructor(
@@ -52,8 +52,8 @@ export class AuthService {
   }
 
   /**
-   * 🔑 LOGIN
-   * RF1: Autenticación con access token (15 min) y refresh token (7 días)
+   *  LOGIN
+   * Autenticación con access token (15 min) y refresh token (7 días)
    */
   login(email: string, password: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.API_URL}/login`, { 
@@ -69,21 +69,21 @@ export class AuthService {
           
           this.authState.next(true);
 
-          // ✅ Programar renovación automática del token
+          //  Programar renovación automática del token
           this.scheduleTokenRefresh();
 
-          console.log('✅ Login exitoso');
+          console.log(' Login exitoso');
         }
       }),
       catchError((error) => {
-        console.error('❌ Error en login:', error);
+        console.error(' Error en login:', error);
         return throwError(() => error);
       })
     );
   }
 
   /**
-   * 🔄 RENOVAR ACCESS TOKEN
+   *  RENOVAR ACCESS TOKEN
    * RF1: Refresh tokens con rotación automática
    */
   refreshAccessToken(): Observable<RefreshResponse> {
@@ -100,18 +100,18 @@ export class AuthService {
     }).pipe(
       tap((res) => {
         if (res.success) {
-          // ✅ Actualizar ambos tokens (rotación)
+          //  Actualizar ambos tokens (rotación)
           localStorage.setItem(this.ACCESS_TOKEN_KEY, res.accessToken);
           localStorage.setItem(this.REFRESH_TOKEN_KEY, res.refreshToken);
           
-          console.log('🔄 Token renovado exitosamente');
+          console.log('Token renovado exitosamente');
 
           // Reprogramar siguiente renovación
           this.scheduleTokenRefresh();
         }
       }),
       catchError((error) => {
-        console.error('❌ Error al renovar token:', error);
+        console.error('Error al renovar token:', error);
         // Si falla la renovación, cerrar sesión
         this.logout();
         return throwError(() => error);
@@ -120,7 +120,7 @@ export class AuthService {
   }
 
   /**
-   * ⏰ PROGRAMAR RENOVACIÓN AUTOMÁTICA
+   *  PROGRAMAR RENOVACIÓN AUTOMÁTICA
    * Renueva el token 1 minuto antes de que expire
    */
   private scheduleTokenRefresh(): void {
@@ -136,14 +136,14 @@ export class AuthService {
     this.refreshTimer = setTimeout(() => {
       console.log('⏰ Renovando token automáticamente...');
       this.refreshAccessToken().subscribe({
-        next: () => console.log('✅ Renovación automática exitosa'),
-        error: (err) => console.error('❌ Error en renovación automática:', err)
+        next: () => console.log(' Renovación automática exitosa'),
+        error: (err) => console.error(' Error en renovación automática:', err)
       });
     }, refreshTime);
   }
 
   /**
-   * 🚪 LOGOUT
+   *  LOGOUT
    */
   logout(): void {
     const refreshToken = this.getRefreshToken();
@@ -174,7 +174,7 @@ export class AuthService {
   }
 
   /**
-   * 🔍 GETTERS
+   *  GETTERS
    */
   getAccessToken(): string | null {
     return localStorage.getItem(this.ACCESS_TOKEN_KEY);
@@ -204,14 +204,14 @@ export class AuthService {
   }
 
   /**
-   * 🔐 REGISTRO
+   *  REGISTRO
    */
   register(data: any): Observable<any> {
     return this.http.post(`${this.API_URL}/register`, data);
   }
 
   /**
-   * 📧 RECUPERACIÓN DE CONTRASEÑA
+   *  RECUPERACIÓN DE CONTRASEÑA
    */
   requestPasswordReset(email: string): Observable<any> {
     return this.http.post(`${this.API_URL}/request-password-reset`, { email });
@@ -225,7 +225,7 @@ export class AuthService {
   }
 
   /**
-   * 🧪 MÉTODO AUXILIAR: Verificar si el token está por expirar
+   *  MÉTODO AUXILIAR: Verificar si el token está por expirar
    */
   isTokenExpiringSoon(): boolean {
     const token = this.getAccessToken();
