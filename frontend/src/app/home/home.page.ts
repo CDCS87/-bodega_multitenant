@@ -27,32 +27,53 @@ export class HomePage implements OnInit {
   ) {}
 
   ngOnInit() {
-    // empieza a contar inactividad al entrar logueado
     this.idle.start();
+  }
 
+  // ✅ en Ionic es más confiable redirigir acá
+  ionViewDidEnter() {
     this.redirectBasedOnRole();
   }
 
   private redirectBasedOnRole() {
-    const role = this.authService.getUserRole();
+    const roleRaw = this.authService.getUserRole();
+    const role = String(roleRaw || '').toUpperCase();
+
+    console.log('[HOME] roleRaw:', roleRaw, ' roleNormalized:', role);
+
+    // ✅ Si no hay token/rol, fuera
+    if (!role) {
+      console.log('[HOME] sin rol -> logout');
+      this.authService.logout();
+      this.router.navigateByUrl('/login', { replaceUrl: true });
+      return;
+    }
 
     switch (role) {
       case 'PYME':
-        this.router.navigate(['/pyme/dashboard'], { replaceUrl: true });
+        console.log('[HOME] -> /pyme/dashboard');
+        this.router.navigateByUrl('/pyme/dashboard', { replaceUrl: true });
         break;
+
       case 'ADMINISTRADOR':
-        this.router.navigate(['/admin/dashboard'], { replaceUrl: true });
+        this.router.navigateByUrl('/admin/dashboard', { replaceUrl: true });
         break;
+
       case 'BODEGA':
-        this.router.navigate(['/bodega/recepcion'], { replaceUrl: true });
+        this.router.navigateByUrl('/bodega/recepcion', { replaceUrl: true });
         break;
+
       case 'TRANSPORTISTA':
-        this.router.navigate(['/transporte/dashboard'], { replaceUrl: true });
+        this.router.navigateByUrl('/transporte/dashboard', { replaceUrl: true });
         break;
+
       default:
+        console.log('[HOME] rol desconocido -> logout', role);
         this.authService.logout();
+        this.router.navigateByUrl('/login', { replaceUrl: true });
         break;
     }
   }
 }
+
 
