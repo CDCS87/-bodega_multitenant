@@ -62,6 +62,8 @@ import { ProductService } from '../../../services/product.service';
 import { Router } from '@angular/router';
 import { ModalController } from '@ionic/angular/standalone';
 import { ProductoModalComponent } from '../../../components/producto-modal.component';
+import { logOutOutline } from 'ionicons/icons';
+
 
 interface DashboardMetrics {
   productosActivos: number;
@@ -487,6 +489,13 @@ async abrirModalCrearProducto() {
   // Cambiar vista
   cambiarVista(vista: 'resumen' | 'inventario' | 'ordenes' | 'estadisticas') {
     this.vistaActiva = vista;
+  }
+
+  // Cerrar sesión
+  logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userData');
+    this.router.navigateByUrl('/login', { replaceUrl: true });
   }
 }
 
