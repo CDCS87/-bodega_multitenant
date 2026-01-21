@@ -26,26 +26,24 @@ export const routes: Routes = [
   loadComponent: () =>
     import('./pages/pyme/orders/orders.page').then(m => m.OrdersPage),
   },
+  /*
   {
   path: 'pyme/orders/despachos',
   loadComponent: () =>
     import('./pages/pyme/orders/despachos/despachos.page').then(m => m.DespachosPage),
   },
+
   {
   path: 'pyme/orders/despachos/crear',
   loadComponent: () =>
-    import('./pages/pyme/orders/despachos/crear/crear-despacho.page').then(m => m.CrearDespachoPage),
+    import('./pages/pyme/orders/despachos/crear/crear-despacho.page.ts').then(m => m.CrearDespachoPage),
   },
   {
   path: 'pyme/orders/despachos/:id',
   loadComponent: () =>
     import('./pages/pyme/orders/despachos/detalle/despacho-detalle.page').then(m => m.DetalleDespachoPage),
   },
-  {
-  path: 'pyme/orders/retiros',
-  loadComponent: () =>
-    import('./pages/pyme/orders/retiros/retiros.page').then(m => m.RetirosPage),
-},
+  */
   {
   path: 'pyme/orders/retiros/crear',
   loadComponent: () =>
