@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+
 import {
   IonContent,
   IonHeader,
@@ -18,6 +20,7 @@ import {
   IonRow,
   IonCol,
   IonProgressBar,
+  IonBadge,
   IonSegment,
   IonSegmentButton,
   IonLabel,
@@ -26,16 +29,30 @@ import {
   IonSearchbar,
   IonList,
   IonItem,
-  IonBadge, IonText } from '@ionic/angular/standalone';
+  IonFab,
+  IonFabButton,
+} from '@ionic/angular/standalone';
 
 import { ModalController } from '@ionic/angular/standalone';
-import { Router } from '@angular/router';
 
 import { addIcons } from 'ionicons';
 import {
   cubeOutline,
   documentTextOutline,
+  trendingUpOutline,
+  alertCircleOutline,
   addOutline,
+  downloadOutline,
+  calendarOutline,
+  filterOutline,
+  searchOutline,
+  timeOutline,
+  locationOutline,
+  checkmarkCircleOutline,
+  closeCircleOutline,
+  navigateCircleOutline,
+  imageOutline,
+  statsChartOutline,
   refreshOutline,
   logOutOutline,
 } from 'ionicons/icons';
@@ -56,8 +73,9 @@ interface Producto {
   sku?: string;
   nombre: string;
   cantidad_disponible: number;
-  stock_minimo: number;
+  cantidad_reservada?: number;
   categoria?: string;
+  stock_minimo: number;
 }
 
 @Component({
@@ -84,6 +102,7 @@ interface Producto {
     IonRow,
     IonCol,
     IonProgressBar,
+    IonBadge,
     IonSegment,
     IonSegmentButton,
     IonLabel,
@@ -91,25 +110,15 @@ interface Producto {
     IonRefresherContent,
     IonSearchbar,
     IonList,
-    IonItem,
-    IonBadge
+    IonItem
 ],
 })
 export class DashboardPage implements OnInit {
+  // Datos de la empresa
   empresaNombre = 'Mi Empresa';
   codigoPyme = '—';
 
-  vistaActiva: 'resumen' | 'inventario' | 'ordenes' = 'resumen';
-
-  onSegmentChange(ev: any) {
-  const v = ev?.detail?.value;
-  if (v === 'ordenes') {
-    // volvemos a una vista real para que no quede en blanco
-    this.vistaActiva = 'resumen';
-    this.router.navigateByUrl('/pyme/orders');
-  }
-}
-
+  // Métricas
   metrics: DashboardMetrics = {
     productosActivos: 0,
     ordenesActivas: 0,
@@ -118,6 +127,10 @@ export class DashboardPage implements OnInit {
     stockBajo: 0,
   };
 
+  // Segmento activo (incluye "ordenes" solo para navegar)
+  vistaActiva: 'resumen' | 'inventario' | 'ordenes' = 'resumen';
+
+  // Inventario
   productos: Producto[] = [];
   productosFiltrados: Producto[] = [];
   searchTerm = '';
@@ -130,7 +143,20 @@ export class DashboardPage implements OnInit {
     addIcons({
       cubeOutline,
       documentTextOutline,
+      trendingUpOutline,
+      alertCircleOutline,
       addOutline,
+      downloadOutline,
+      calendarOutline,
+      filterOutline,
+      searchOutline,
+      timeOutline,
+      locationOutline,
+      checkmarkCircleOutline,
+      closeCircleOutline,
+      navigateCircleOutline,
+      imageOutline,
+      statsChartOutline,
       refreshOutline,
       logOutOutline,
     });
@@ -141,30 +167,52 @@ export class DashboardPage implements OnInit {
     this.cargarDashboard();
   }
 
+  // ✅ IMPORTANTE: si vuelves al dashboard desde /pyme/orders,
+  // que quede en una vista real (no "ordenes")
   ionViewWillEnter() {
-    // por si el userData se setea después del login
+    if (this.vistaActiva === 'ordenes') this.vistaActiva = 'resumen';
     this.cargarDatosUsuario();
   }
 
-  cargarDatosUsuario() {
-    const raw = localStorage.getItem('userData');
-    if (!raw) return;
-
-    const u = JSON.parse(raw);
-
-    this.empresaNombre =
-      u.empresa_nombre ??
-      u.razon_social ??
-      u.empresaNombre ??
-      this.empresaNombre;
-
-    this.codigoPyme =
-      u.codigo_pyme ??
-      u.codigoPyme ??
-      u.pyme_codigo ??
-      this.codigoPyme;
+  // =========================
+  // Navegación / Segment
+  // =========================
+  onSegmentChange(ev: any) {
+    const v = ev?.detail?.value as 'resumen' | 'inventario' | 'ordenes';
+    if (v === 'ordenes') {
+      // evitar pantalla en blanco
+      this.vistaActiva = 'resumen';
+      this.router.navigateByUrl('/pyme/orders');
+      return;
+    }
+    this.vistaActiva = v;
   }
 
+  irAOrdenes() {
+    // también evita que quede seleccionado "ordenes"
+    this.vistaActiva = 'resumen';
+    this.router.navigateByUrl('/pyme/orders');
+  }
+
+  // =========================
+  // UserData (localStorage)
+  // =========================
+  cargarDatosUsuario() {
+    const userData = localStorage.getItem('userData');
+    if (!userData) return;
+
+    try {
+      const user = JSON.parse(userData);
+      this.empresaNombre = user?.empresa_nombre || user?.razon_social || 'Mi Empresa';
+      this.codigoPyme = user?.codigo_pyme || user?.codigo_pyme_fk || '—';
+    } catch {
+      // nada
+    }
+  }
+
+  // =========================
+  // Cargas
+  // =========================
   async cargarDashboard() {
     await Promise.all([this.cargarMetricas(), this.cargarProductos()]);
   }
@@ -176,13 +224,13 @@ export class DashboardPage implements OnInit {
       });
       const data = await response.json();
       this.metrics = data;
-    } catch (e) {
+    } catch {
       // fallback dev
       this.metrics = {
-        productosActivos: this.productos.length || 0,
+        productosActivos: 0,
         ordenesActivas: 0,
         volumenOcupado: 0,
-        volumenTotal: 1,
+        volumenTotal: 0,
         stockBajo: 0,
       };
     }
@@ -194,16 +242,10 @@ export class DashboardPage implements OnInit {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       const data = await response.json();
-
-      this.productos = data || [];
+      this.productos = Array.isArray(data) ? data : [];
       this.productosFiltrados = [...this.productos];
-
-      // recalcula métricas simples si quieres
-      this.metrics.productosActivos = this.productos.length;
-      this.metrics.stockBajo = this.productos.filter(
-        (p) => (p.cantidad_disponible ?? 0) <= (p.stock_minimo ?? 0)
-      ).length;
-    } catch (e) {
+      this.filtrarProductos();
+    } catch {
       this.productos = [];
       this.productosFiltrados = [];
     }
@@ -215,16 +257,35 @@ export class DashboardPage implements OnInit {
       this.productosFiltrados = [...this.productos];
       return;
     }
-    this.productosFiltrados = this.productos.filter((p) => {
-      const n = (p.nombre ?? '').toLowerCase();
-      const sku = (p.sku ?? '').toLowerCase();
-      return n.includes(term) || sku.includes(term);
-    });
+    this.productosFiltrados = this.productos.filter((p) =>
+      (p.nombre || '').toLowerCase().includes(term) ||
+      ((p.sku || '').toLowerCase().includes(term))
+    );
   }
 
+  // =========================
+  // Modal Crear Producto
+  // =========================
+  async abrirModalCrearProducto() {
+    const modal = await this.modalCtrl.create({
+      component: ProductoModalComponent,
+    });
+
+    await modal.present();
+    const { data } = await modal.onWillDismiss();
+
+    if (data?.created) {
+      await this.cargarProductos();
+      this.vistaActiva = 'inventario';
+    }
+  }
+
+  // =========================
+  // UI helpers
+  // =========================
   get porcentajeVolumen(): number {
-    const total = this.metrics.volumenTotal || 1;
-    return (this.metrics.volumenOcupado / total) * 100;
+    if (!this.metrics.volumenTotal) return 0;
+    return (this.metrics.volumenOcupado / this.metrics.volumenTotal) * 100;
   }
 
   getColorVolumen(): string {
@@ -234,27 +295,12 @@ export class DashboardPage implements OnInit {
     return 'danger';
   }
 
+  // =========================
+  // Refresh / Logout
+  // =========================
   async refrescarDatos(event?: any) {
     await this.cargarDashboard();
     if (event) event.target.complete();
-  }
-
-  irAOrdenes() {
-    this.router.navigateByUrl('/pyme/orders.page');
-  }
-
-  async abrirModalCrearProducto() {
-    const modal = await this.modalCtrl.create({
-      component: ProductoModalComponent,
-    });
-
-    await modal.present();
-
-    const { data } = await modal.onWillDismiss();
-    if (data?.created) {
-      await this.cargarProductos();
-      this.vistaActiva = 'inventario';
-    }
   }
 
   logout() {
