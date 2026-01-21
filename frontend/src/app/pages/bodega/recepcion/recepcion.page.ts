@@ -9,7 +9,7 @@ import {
   IonList, IonText, IonSpinner
 } from '@ionic/angular/standalone';
 
-import { RetiroService } from '../../../services/retiro.service';
+import { RetiroService } from 'src/app/services/retiro.service';
 
 @Component({
   selector: 'app-bodega-recepcion',
@@ -42,12 +42,15 @@ export class RecepcionPage implements OnInit {
 
   loadPendientes() {
     this.loadingList = true;
+    this.errorMsg = '';
+
     this.retiroService.getPendientesBodega().subscribe({
-      next: (list) => {
-        this.pendientes = list || [];
+      next: (list: any) => {
+        // si backend devuelve {data:[]}, ajustas acá. Por ahora: array directo
+        this.pendientes = Array.isArray(list) ? list : (list?.pendientes ?? []);
         this.loadingList = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         this.loadingList = false;
         this.errorMsg = err?.error?.message || 'No se pudieron cargar pendientes';
       }
@@ -63,13 +66,19 @@ export class RecepcionPage implements OnInit {
     }
 
     this.loading = true;
+
     this.retiroService.scanRetiro(c).subscribe({
-      next: (orden) => {
+      next: (orden: any) => {
         this.loading = false;
         this.codigo = '';
-        this.router.navigate([`/bodega/recepcion/${orden.id}`]);
+
+        // Ajuste: si el backend te devuelve { retiro: {id}} etc:
+        const id = orden?.id ?? orden?.retiro?.id;
+        if (!id) return;
+
+        this.router.navigate([`/bodega/recepcion/${id}`]);
       },
-      error: (err) => {
+      error: (err: any) => {
         this.loading = false;
         this.errorMsg = err?.error?.message || 'No se encontró la orden';
       }

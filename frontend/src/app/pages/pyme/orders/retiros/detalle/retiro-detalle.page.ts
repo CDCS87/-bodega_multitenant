@@ -3,30 +3,23 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import {
-  IonHeader, IonToolbar, IonContent, IonTitle,
-  IonButton, IonText, IonSpinner, IonItem, IonLabel, IonList
+  IonHeader, IonToolbar, IonTitle, IonContent,
+  IonButton, IonButtons, IonBackButton,
+  IonCard, IonCardContent, IonText, IonSpinner,
+  IonList, IonItem, IonLabel, IonBadge
 } from '@ionic/angular/standalone';
 
-import { RetiroService } from '../../../../services/retiro.service';
-
-// ✅ QR generator
-// @ts-ignore
-import QRCode from 'qrcode';
+import { RetiroService } from 'src/app/services/retiro.service';
 
 @Component({
   selector: 'app-retiro-detalle',
   standalone: true,
   imports: [
     CommonModule,
-    IonButton, IonText,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonContent,
-    IonSpinner,
-    IonItem,
-    IonLabel,
-    IonList
+    IonHeader, IonToolbar, IonTitle, IonContent,
+    IonButton,
+    IonText, IonSpinner,
+    IonList, IonItem, IonLabel
 ],
   templateUrl: './retiro-detalle.page.html',
   styleUrls: ['./retiro-detalle.page.scss']
@@ -35,9 +28,8 @@ export class RetiroDetallePage implements OnInit {
   loading = false;
   errorMsg = '';
 
+  // 👇 estas propiedades SON las que tu HTML usa
   orden: any = null;
-
-  // ✅ QR visual
   qrDataUrl: string | null = null;
   copying = false;
 
@@ -48,80 +40,65 @@ export class RetiroDetallePage implements OnInit {
   ) {}
 
   ngOnInit() {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    if (!id) {
-      this.errorMsg = 'ID inválido.';
-      return;
-    }
-    this.load(id);
+    this.cargar();
   }
 
-  load(id: number) {
+  cargar() {
     this.loading = true;
-    this.errorMsg = '';
-    this.qrDataUrl = null;
 
-    this.retiroService.getRetiroById(id).subscribe({
-      next: async (orden) => {
-        this.orden = orden;
+    const codigo = this.route.snapshot.paramMap.get('codigo');
+    if (!codigo) {
+      this.loading = false;
+      this.errorMsg = 'Código no encontrado';
+      return;
+    }
+
+    this.retiroService.buscarPorCodigo(codigo).subscribe({
+      next: (data: any) => {
         this.loading = false;
+        this.orden = data;
 
-        // ✅ Generar QR al cargar
-        await this.generateQr();
+        // si más adelante generas QR como base64
+        if (data?.qr_data_url) {
+          this.qrDataUrl = data.qr_data_url;
+        }
       },
-      error: (err) => {
+      error: (err: any) => {
         this.loading = false;
-        this.errorMsg = err?.error?.message || 'No se pudo cargar la orden';
+        this.errorMsg = err?.error?.message || 'No se pudo cargar el retiro';
       }
     });
   }
 
-  async generateQr() {
-    try {
-      const payload = this.orden?.qr_code;
-      if (!payload) {
-        this.qrDataUrl = null;
-        return;
-      }
-
-      // Genera imagen base64 (data URL)
-      this.qrDataUrl = await QRCode.toDataURL(payload, {
-        errorCorrectionLevel: 'M',
-        margin: 1,
-        scale: 6
-      });
-    } catch (e: any) {
-      console.error('❌ Error generando QR:', e);
-      this.qrDataUrl = null;
-    }
+  // 👈 lo llama el botón del HTML
+  back() {
+    this.router.navigateByUrl('/pyme/orders');
   }
 
+  // 👈 usado por el botón "Copiar payload"
   async copyPayload() {
-    const payload = this.orden?.qr_code;
-    if (!payload) return;
+    if (!this.orden) return;
 
+    this.copying = true;
     try {
-      this.copying = true;
-      await navigator.clipboard.writeText(payload);
+      await navigator.clipboard.writeText(JSON.stringify(this.orden, null, 2));
     } catch (e) {
-      // fallback muy simple
-      try {
-        const el = document.createElement('textarea');
-        el.value = payload;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
-      } catch (e2) {
-        console.error('❌ No se pudo copiar:', e2);
-      }
+      console.error('Error copiando payload', e);
     } finally {
       this.copying = false;
     }
   }
 
-  back() {
-    this.router.navigate(['/pyme/retiros'], { replaceUrl: true });
+  badgeColor(estado: string) {
+    switch (estado) {
+      case 'ENTREGADO': return 'success';
+      case 'EN_TRANSITO': return 'tertiary';
+      case 'PREPARADO': return 'primary';
+      case 'EN_PREPARACION': return 'warning';
+      case 'FALLIDO': return 'danger';
+      case 'CANCELADO': return 'medium';
+      default: return 'secondary';
+    }
   }
 }
 
