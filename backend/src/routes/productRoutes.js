@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const productController = require('../controllers/productController');
-const auth = require('../middlewares/authMiddleware');
+const { authMiddleware: auth } = require('../middlewares/authMiddleware');
 
 // listar/buscar (q, barcode, activo) -> /api/products
 router.get('/', auth, productController.getProducts);
