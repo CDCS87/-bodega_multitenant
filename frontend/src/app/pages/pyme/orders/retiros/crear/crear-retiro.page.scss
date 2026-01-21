@@ -1,0 +1,56 @@
+.actions {
+  margin-top: 12px;
+}
+
+.result-title {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+}
+
+.label {
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.value {
+  text-align: right;
+  opacity: 0.95;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  word-break: break-all;
+}
+
+.code {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0,0,0,0.08);
+}
+
+.qr {
+  display: flex;
+  justify-content: center;
+  margin: 14px 0;
+}
+
+.qr img {
+  width: 240px;
+  height: 240px;
+}
+
+.result-actions {
+  display: grid;
+  gap: 10px;
+}
+
+

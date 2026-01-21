@@ -1,0 +1,57 @@
+.cta-card .cta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cta-title {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.cta-sub {
+  opacity: 0.8;
+}
+
+.section-title {
+  font-weight: 800;
+  margin: 14px 4px 8px;
+}
+
+.filters ion-item {
+  --padding-start: 0;
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.order-card {
+  cursor: pointer;
+}
+
+.order-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.order-code {
+  font-weight: 900;
+  letter-spacing: 0.2px;
+}
+
+.order-meta {
+  margin-top: 8px;
+  opacity: 0.9;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+

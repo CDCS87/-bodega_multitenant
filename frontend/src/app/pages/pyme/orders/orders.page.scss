@@ -1,0 +1,65 @@
+.actions-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+@media (min-width: 900px) {
+  .actions-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.action-card .action-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.action-card .action-sub {
+  opacity: 0.8;
+  margin-bottom: 10px;
+}
+
+.section-title {
+  font-weight: 700;
+  margin: 14px 4px 8px;
+}
+
+.filters ion-item {
+  --padding-start: 0;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.order-card {
+  cursor: pointer;
+}
+
+.order-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.order-code {
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.order-meta {
+  margin-top: 8px;
+  opacity: 0.9;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  font-weight: 700;
+}

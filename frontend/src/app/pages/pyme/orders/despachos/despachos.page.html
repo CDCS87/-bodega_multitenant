@@ -1,0 +1,100 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/pyme/orders"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Despachos</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="reload()">
+        Actualizar
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- CTA -->
+  <ion-card class="cta-card">
+    <ion-card-content>
+      <div class="cta-row">
+        <div>
+          <div class="cta-title">Solicitar despacho</div>
+          <div class="cta-sub">Crea un despacho a cliente final</div>
+        </div>
+        <ion-button (click)="goToCrear()">
+          Nuevo
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Filtros -->
+  <ion-card>
+    <ion-card-content class="filters">
+      <ion-item lines="none">
+        <ion-label>Estado</ion-label>
+        <ion-select [(ngModel)]="filters.estado">
+          <ion-select-option value="ALL">Todos</ion-select-option>
+          <ion-select-option value="SOLICITADO">Solicitado</ion-select-option>
+          <ion-select-option value="EN_PREPARACION">En preparación</ion-select-option>
+          <ion-select-option value="PREPARADO">Preparado</ion-select-option>
+          <ion-select-option value="EN_TRANSITO">En tránsito</ion-select-option>
+          <ion-select-option value="ENTREGADO">Entregado</ion-select-option>
+          <ion-select-option value="FALLIDO">Fallido</ion-select-option>
+          <ion-select-option value="CANCELADO">Cancelado</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item lines="none">
+        <ion-label position="stacked">Buscar</ion-label>
+        <ion-input
+          placeholder="OD-2026-0012 / destino..."
+          [(ngModel)]="filters.q"
+          (ionInput)="onSearch()">
+        </ion-input>
+      </ion-item>
+
+      <div class="filter-actions">
+        <ion-button fill="outline" (click)="filters={estado:'ALL', q:''}; reload()">Limpiar</ion-button>
+        <ion-button (click)="reload()">Aplicar</ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Loading -->
+  <ion-card *ngIf="loading">
+    <ion-card-content>
+      <ion-skeleton-text animated style="width: 45%"></ion-skeleton-text>
+      <ion-skeleton-text animated style="width: 85%"></ion-skeleton-text>
+      <ion-skeleton-text animated style="width: 65%"></ion-skeleton-text>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Lista -->
+  <div class="section-title">Historial de despachos</div>
+
+  <ion-card
+    *ngFor="let d of despachos"
+    class="order-card"
+    (click)="openDetalle(d)">
+    <ion-card-content>
+      <div class="order-row">
+        <div class="order-code">{{ d.codigo }}</div>
+        <ion-badge [color]="badgeColor(d.estado)">{{ labelEstado(d.estado) }}</ion-badge>
+      </div>
+
+      <div class="order-meta">
+        <span>{{ d.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+        <span *ngIf="d.destino">• {{ d.destino }}</span>
+        <span *ngIf="d.items">• {{ d.items }} items</span>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="!loading && despachos.length === 0">
+    <ion-card-content>No hay despachos con esos filtros.</ion-card-content>
+  </ion-card>
+
+</ion-content>
+

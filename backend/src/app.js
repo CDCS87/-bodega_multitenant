@@ -1,4 +1,3 @@
-// backend/src/app.js
 require('dotenv').config();
 
 const express = require('express');
@@ -28,7 +27,7 @@ app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/admin', adminRoutes);
-//app.use('/api/retiros', retiroRoutes);
+app.use('/api/retiros', retiroRoutes);
 //app.use('/api/despachos', despachoRoutes);
 //app.use('/api/transporte', transporteRoutes);
 

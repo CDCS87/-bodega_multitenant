@@ -18,7 +18,7 @@ const Product = sequelize.define('Product', {
 
   tiene_codigo_original: { type: DataTypes.BOOLEAN, defaultValue: false },
 
-  // SQL: JSONB real
+  // SQL: JSONB
   caracteristicas_especificas: { type: DataTypes.JSONB, allowNull: true },
 
   cantidad_disponible: { type: DataTypes.INTEGER, defaultValue: 0 },

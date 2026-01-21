@@ -22,17 +22,41 @@ export const routes: Routes = [
   // PYME
   // ======================
   {
-    path: 'pyme/dashboard',
-    loadComponent: () =>
-      import('./pages/pyme/dashboard/dashboard.page')
-        .then(m => m.DashboardPage),
+  path: 'pyme/orders',
+  loadComponent: () =>
+    import('./pages/pyme/orders/orders.page').then(m => m.OrdersPage),
   },
   {
-    path: 'pyme/pedidos',
-    loadComponent: () =>
-      import('./pages/pyme/pedidos/pedidos.page')
-        .then(m => m.PedidosPage),
+  path: 'pyme/orders/despachos',
+  loadComponent: () =>
+    import('./pages/pyme/orders/despachos/despachos.page').then(m => m.DespachosPage),
   },
+  {
+  path: 'pyme/orders/despachos/crear',
+  loadComponent: () =>
+    import('./pages/pyme/orders/despachos/crear/crear-despacho.page').then(m => m.CrearDespachoPage),
+  },
+  {
+  path: 'pyme/orders/despachos/:id',
+  loadComponent: () =>
+    import('./pages/pyme/orders/despachos/detalle/despacho-detalle.page').then(m => m.DetalleDespachoPage),
+  },
+  {
+  path: 'pyme/orders/retiros',
+  loadComponent: () =>
+    import('./pages/pyme/orders/retiros/retiros.page').then(m => m.RetirosPage),
+},
+  {
+  path: 'pyme/orders/retiros/crear',
+  loadComponent: () =>
+    import('./pages/pyme/orders/retiros/crear/crear-retiro.page').then(m => m.CrearRetiroPage),
+  },
+  {
+  path: 'pyme/orders/retiros/:id',
+  loadComponent: () =>
+    import('./pages/pyme/orders/retiros/detalle/retiro-detalle.page').then(m => m.RetiroDetallePage),
+  },
+
 
   // ======================
   // BODEGA

@@ -45,6 +45,19 @@ export class ProductService {
   }) {
     return this.http.post<any>(this.API_URL, payload).pipe(map(r => r.producto));
   }
+
+  searchProducts(q: string) {
+  return this.http
+    .get<any>(this.API_URL, { params: { q } })
+    .pipe(map(r => r.productos ?? []));
+}
+
+searchByBarcode(barcode: string) {
+  return this.http
+    .get<any>(this.API_URL, { params: { barcode } })
+    .pipe(map(r => r.productos ?? []));
+}
+
 }
 
 

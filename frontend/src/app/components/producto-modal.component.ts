@@ -81,7 +81,7 @@ export class ProductoModalComponent {
     const nombre = this.nombre.trim();
     if (!nombre) return { ok: false, message: 'El nombre es obligatorio.' };
 
-    // opcional: validar SKU si viene (no obligatorio)
+    // sku pendiente para otra etapa
     if (this.sku.trim() && this.sku.trim().length < 3) {
       return { ok: false, message: 'El SKU debe tener al menos 3 caracteres (o déjalo vacío).' };
     }

@@ -4,8 +4,6 @@ const { Op } = require('sequelize');
 
 /**
  * 📦 OBTENER PRODUCTOS DE LA PYME
- * RF3: Gestión diferenciada de productos
- * RF1: Separación estricta multi-tenant por pyme_id
  */
 exports.getProducts = async (req, res) => {
   try {
@@ -17,10 +15,29 @@ exports.getProducts = async (req, res) => {
           message: 'Usuario PYME sin empresa asignada' 
         });
       }
+      const { q, barcode, activo } = req.query;
 
+      const whereClause = {
+    pyme_id: req.user.pyme_id,
+    };
+
+    // solo activos
+    if (activo !== undefined) whereClause.activo = (activo === 'true');
+    else whereClause.activo = true;
+
+    if (barcode && String(barcode).trim()) {
+    whereClause.codigo_barras = String(barcode).trim();
+      } else if (q && String(q).trim()) {
+      const term = String(q).trim();
+      whereClause[Op.or] = [
+        { nombre: { [Op.iLike]: `%${term}%` } },
+        { sku: { [Op.iLike]: `%${term}%` } },
+        { codigo_barras: { [Op.iLike]: `%${term}%` } },
+        ];
+      }
       // Filtrar por pyme_id del usuario autenticado
       const productos = await Product.findAll({
-        where: { pyme_id: req.user.pyme_id },
+        where: whereClause,
         order: [['nombre', 'ASC']],
         attributes: [
           'id',
@@ -40,7 +57,8 @@ exports.getProducts = async (req, res) => {
           'alerta_stock_bajo',
           'activo',
           'fecha_registro'
-        ]
+        ],
+        limit: 30
       });
 
       return res.json({

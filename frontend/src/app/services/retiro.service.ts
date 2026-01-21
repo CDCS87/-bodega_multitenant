@@ -1,21 +1,23 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { map } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 
-export type RetiroItemCreate = {
-  producto_id: number;
-  cantidad_esperada: number;
-  observaciones?: string | null;
-};
+export type RangoRetiro = 'CORTE_1' | 'CORTE_2';
 
-export type RetiroCreatePayload = {
-  direccion_retiro: string;
+export interface CrearRetiroPayload {
   comuna: string;
-  fecha_solicitada: string;
+  direccion: string;
+  rango: RangoRetiro;
+
+  // si aún no estás mandando detalle, déjalo opcional
+  items?: Array<{
+    producto_id: number;   // 👈 ideal number (tu DB usa int)
+    cantidad: number;
+  }>;
+
   observaciones?: string | null;
-  items: RetiroItemCreate[];
-};
+  fecha_solicitada?: string; // 'YYYY-MM-DD' opcional
+}
 
 @Injectable({ providedIn: 'root' })
 export class RetiroService {
@@ -23,45 +25,12 @@ export class RetiroService {
 
   constructor(private http: HttpClient) {}
 
-  createRetiro(payload: RetiroCreatePayload) {
-    return this.http.post<any>(this.API_URL, payload).pipe(map(r => r.orden));
+  crearRetiro(payload: CrearRetiroPayload) {
+    return this.http.post<any>(this.API_URL, payload);
   }
 
-  getRetiros(filters?: { estado?: string; desde?: string; hasta?: string; q?: string }) {
-    let params = new HttpParams();
-    if (filters?.estado) params = params.set('estado', filters.estado);
-    if (filters?.desde) params = params.set('desde', filters.desde);
-    if (filters?.hasta) params = params.set('hasta', filters.hasta);
-    if (filters?.q) params = params.set('q', filters.q);
-
-    return this.http
-      .get<any>(this.API_URL, { params })
-      .pipe(map(r => r.ordenes ?? r.retiros ?? r.data ?? []));
-  }
-
-  getRetiroById(id: number) {
-    return this.http.get<any>(`${this.API_URL}/${id}`).pipe(map(r => r.orden));
-  }
-
-  scanRetiro(codigo: string) {
-    return this.http
-      .get<any>(`${this.API_URL}/scan/${encodeURIComponent(codigo)}`)
-      .pipe(map(r => r.orden));
-  }
-
-  getPendientesBodega() {
-    return this.http.get<any>(this.API_URL).pipe(map(r => r.ordenes));
-  }
-
-  confirmarIngresoBodega(
-    id: number,
-    items: { detalle_id: number; cantidad_recibida: number }[],
-    fotos: File[] = []
-  ) {
-    const form = new FormData();
-    form.append('items', JSON.stringify(items));
-    fotos.forEach(f => form.append('fotos', f));
-    return this.http.put<any>(`${this.API_URL}/${id}/ingresar`, form);
+  buscarPorCodigo(codigo: string) {
+    return this.http.get<any>(`${this.API_URL}/codigo/${encodeURIComponent(codigo)}`);
   }
 }
 
