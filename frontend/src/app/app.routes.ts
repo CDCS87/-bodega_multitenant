@@ -22,6 +22,13 @@ export const routes: Routes = [
   // PYME
   // ======================
   {
+  path: 'pyme/dashboard',
+  loadComponent: () =>
+    import('./pages/pyme/dashboard/dashboard.page')
+      .then(m => m.DashboardPage),
+  },
+
+  {
   path: 'pyme/orders',
   loadComponent: () =>
     import('./pages/pyme/orders/orders.page').then(m => m.OrdersPage),
@@ -36,7 +43,7 @@ export const routes: Routes = [
   {
   path: 'pyme/orders/despachos/crear',
   loadComponent: () =>
-    import('./pages/pyme/orders/despachos/crear/crear-despacho.page.ts').then(m => m.CrearDespachoPage),
+    import('./pages/pyme/orders/despachos/crear/crear-despacho.page').then(m => m.CrearDespachoPage),
   },
   {
   path: 'pyme/orders/despachos/:id',
