@@ -197,18 +197,26 @@ export class DashboardPage implements OnInit {
   // =========================
   // UserData (localStorage)
   // =========================
-  cargarDatosUsuario() {
-    const userData = localStorage.getItem('userData');
-    if (!userData) return;
+  async cargarDatosUsuario() {
+  try {
+    const res = await fetch('/api/pyme/me', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    });
 
-    try {
-      const user = JSON.parse(userData);
-      this.empresaNombre = user?.empresa_nombre || user?.razon_social || 'Mi Empresa';
-      this.codigoPyme = user?.codigo_pyme || user?.codigo_pyme_fk || '—';
-    } catch {
-      // nada
-    }
+    if (!res.ok) throw new Error('No se pudo cargar pyme');
+
+    const pyme = await res.json();
+    this.empresaNombre = pyme.razon_social;
+    this.codigoPyme = pyme.codigo_pyme;
+
+  } catch (e) {
+    console.error('Error cargando pyme', e);
+    this.empresaNombre = 'Mi Empresa';
+    this.codigoPyme = '';
   }
+}
 
   // =========================
   // Cargas
