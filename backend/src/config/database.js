@@ -12,7 +12,7 @@ const sequelize = databaseUrl
   ? new Sequelize(databaseUrl, {
       dialect: 'postgres',
       logging: false,
-      dialectOptions: process.env.DB_SSL === 'true'
+      dialectOptions: process.env.ENABLE_SSL === 'true'
         ? { ssl: { require: true, rejectUnauthorized: false } }
         : {}
     })
