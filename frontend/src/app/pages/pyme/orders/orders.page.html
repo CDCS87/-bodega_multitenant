@@ -41,30 +41,38 @@
     </ion-card-header>
 
     <ion-card-content>
-      <!-- Tipo -->
-      <ion-item>
-        <ion-label>Tipo</ion-label>
-        <ion-select [(ngModel)]="filters.tipo" (ionChange)="applyFilters()">
-          <ion-select-option value="ALL">Todas</ion-select-option>
-          <ion-select-option value="RETIRO">Retiro</ion-select-option>
-          <ion-select-option value="DESPACHO">Despacho</ion-select-option>
-        </ion-select>
-      </ion-item>
 
-      <!-- Estado -->
-      <ion-item>
-        <ion-label>Estado</ion-label>
-        <ion-select [(ngModel)]="filters.estado" (ionChange)="applyFilters()">
-          <ion-select-option value="ALL">Todos</ion-select-option>
-          <ion-select-option value="SOLICITADO">Solicitado</ion-select-option>
-          <ion-select-option value="ASIGNADO">Asignado</ion-select-option>
-          <ion-select-option value="EN_PREPARACION">En preparación</ion-select-option>
-          <ion-select-option value="PREPARADO">Preparado</ion-select-option>
-          <ion-select-option value="EN_TRANSITO">En tránsito</ion-select-option>
-          <ion-select-option value="ENTREGADO">Entregado</ion-select-option>
-          <ion-select-option value="CANCELADO">Cancelado</ion-select-option>
-        </ion-select>
-      </ion-item>
+      <!-- Tipo + Estado (lado a lado) -->
+      <ion-grid>
+        <ion-row>
+          <ion-col size="6">
+            <ion-item>
+              <ion-label position="stacked">Tipo</ion-label>
+              <ion-select [(ngModel)]="filters.tipo" (ionChange)="applyFilters()">
+                <ion-select-option value="ALL">Todas</ion-select-option>
+                <ion-select-option value="RETIRO">Retiro</ion-select-option>
+                <ion-select-option value="DESPACHO">Despacho</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </ion-col>
+
+          <ion-col size="6">
+            <ion-item>
+              <ion-label position="stacked">Estado</ion-label>
+              <ion-select [(ngModel)]="filters.estado" (ionChange)="applyFilters()">
+                <ion-select-option value="ALL">Todos</ion-select-option>
+                <ion-select-option value="SOLICITADO">Solicitado</ion-select-option>
+                <ion-select-option value="ASIGNADO">Asignado</ion-select-option>
+                <ion-select-option value="EN_PREPARACION">En preparación</ion-select-option>
+                <ion-select-option value="PREPARADO">Preparado</ion-select-option>
+                <ion-select-option value="EN_TRANSITO">En tránsito</ion-select-option>
+                <ion-select-option value="ENTREGADO">Entregado</ion-select-option>
+                <ion-select-option value="CANCELADO">Cancelado</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
 
       <!-- Buscar -->
       <ion-item>

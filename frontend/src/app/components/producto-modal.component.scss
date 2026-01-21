@@ -21,3 +21,16 @@
 .error {
   margin-top: 12px;
 }
+
+.kvLabel {
+  display: block;
+  font-size: 12px;
+  opacity: .7;
+  margin-bottom: 6px;
+}
+
+.kvBtnCol {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}

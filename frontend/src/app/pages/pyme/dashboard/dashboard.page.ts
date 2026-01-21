@@ -65,7 +65,7 @@ interface Producto {
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
   standalone: true,
-  imports: [IonText, 
+  imports: [
     CommonModule,
     FormsModule,
     IonContent,
@@ -93,13 +93,14 @@ interface Producto {
     IonList,
     IonItem,
     IonBadge,
-  ],
+    IonText
+],
 })
 export class DashboardPage implements OnInit {
   empresaNombre = 'Mi Empresa';
   codigoPyme = '—';
 
-  vistaActiva: 'resumen' | 'inventario' = 'resumen';
+  vistaActiva: 'resumen' | 'inventario' | 'ordenes' = 'resumen';
 
   metrics: DashboardMetrics = {
     productosActivos: 0,

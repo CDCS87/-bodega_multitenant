@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ModalController } from '@ionic/angular/standalone'; // ✅ AQUÍ
+import { ModalController, IonGrid, IonRow, IonCol } from '@ionic/angular/standalone'; // ✅ AQUÍ
 
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
@@ -15,11 +15,12 @@ type KV = { key: string; value: string };
 @Component({
   selector: 'app-producto-modal',
   standalone: true,
-  imports: [
+  imports: [IonCol, IonRow, 
     CommonModule, FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent,
-    IonItem, IonLabel, IonInput, IonButton, IonList, IonText
-  ],
+    IonItem, IonLabel, IonInput, IonButton, IonList, IonText,
+    IonGrid
+],
   templateUrl: './producto-modal.component.html',
   styleUrls: ['./producto-modal.component.scss'],
 })
