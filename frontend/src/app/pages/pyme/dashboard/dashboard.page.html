@@ -45,7 +45,8 @@
   <!-- ===================== -->
   <!-- RESUMEN -->
   <!-- ===================== -->
-  <div *ngIf="vistaActiva === 'resumen'" class="dashboard-container">
+  @if (vistaActiva === 'resumen') {
+  <div class="dashboard-container">
     <!-- Métricas -->
     <ion-grid>
       <ion-row>
@@ -124,7 +125,8 @@
   <!-- ===================== -->
   <!-- INVENTARIO -->
   <!-- ===================== -->
-  <div *ngIf="vistaActiva === 'inventario'" class="inventario-container">
+  } @if (vistaActiva === 'inventario') {
+  <div class="inventario-container">
     <ion-card>
       <ion-card-content>
         <ion-searchbar
@@ -167,9 +169,15 @@
       </ion-card-content>
     </ion-card>
   </div>
+
+  <!-- ===================== -->
+  <!-- VISTA ÓRDENES -->
+  <!-- ===================== -->
+  } @if (vistaActiva === 'ordenes') {
+  <div class="ordenes-container">
+    <!-- Órdenes content goes here -->
+  </div>
+  }
 </ion-content>
-<!-- ===================== -->
-<!-- VISTA ÓRDENES -->
-<!-- ===================== -->
 
 

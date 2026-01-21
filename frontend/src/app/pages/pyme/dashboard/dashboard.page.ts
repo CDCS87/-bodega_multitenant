@@ -101,6 +101,15 @@ export class DashboardPage implements OnInit {
 
   vistaActiva: 'resumen' | 'inventario' | 'ordenes' = 'resumen';
 
+  onSegmentChange(ev: any) {
+  const v = ev?.detail?.value;
+  if (v === 'ordenes') {
+    // volvemos a una vista real para que no quede en blanco
+    this.vistaActiva = 'resumen';
+    this.router.navigateByUrl('/pyme/orders');
+  }
+}
+
   metrics: DashboardMetrics = {
     productosActivos: 0,
     ordenesActivas: 0,
