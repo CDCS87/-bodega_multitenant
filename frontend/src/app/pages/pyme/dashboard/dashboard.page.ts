@@ -197,13 +197,13 @@ export class DashboardPage implements OnInit {
   // =========================
 async cargarDatosUsuario() {
   try {
-    const token = localStorage.getItem('accesstoken') || '';
+    const accesstoken = localStorage.getItem('accesstoken') || '';
 
     const res = await fetch(
       `${environment.apiUrl}/api/pyme/me`,
       {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${accesstoken}`,
         },
       }
     );
@@ -252,7 +252,7 @@ async cargarDatosUsuario() {
   async cargarProductos() {
     try {
       const response = await fetch('/api/pyme/productos', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${localStorage.getItem('accesstoken')}` },
       });
       const data = await response.json();
       this.productos = Array.isArray(data) ? data : [];
@@ -317,7 +317,7 @@ async cargarDatosUsuario() {
   }
 
   logout() {
-    localStorage.removeItem('token');
+    localStorage.removeItem('accesstoken');
     localStorage.removeItem('userData');
     this.router.navigateByUrl('/login', { replaceUrl: true });
   }
