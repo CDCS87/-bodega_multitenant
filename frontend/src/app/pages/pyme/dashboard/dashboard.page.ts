@@ -34,7 +34,6 @@ import {
 } from '@ionic/angular/standalone';
 
 import { ModalController } from '@ionic/angular/standalone';
-
 import { addIcons } from 'ionicons';
 import {
   cubeOutline,
@@ -59,6 +58,8 @@ import {
 
 import { ProductService } from '../../../services/product.service';
 import { ProductoModalComponent } from '../../../components/producto-modal.component';
+// Importamos el servicio de autenticación
+import { AuthService } from '../../../services/auth.service';
 
 interface DashboardMetrics {
   productosActivos: number;
@@ -111,7 +112,7 @@ interface Producto {
     IonSearchbar,
     IonList,
     IonItem
-],
+  ],
 })
 export class DashboardPage implements OnInit {
   // Datos de la empresa
@@ -127,7 +128,7 @@ export class DashboardPage implements OnInit {
     stockBajo: 0,
   };
 
-  // Segmento activo (incluye "ordenes" solo para navegar)
+  // Segmento activo
   vistaActiva: 'resumen' | 'inventario' | 'ordenes' = 'resumen';
 
   // Inventario
@@ -137,6 +138,7 @@ export class DashboardPage implements OnInit {
 
   constructor(
     private productService: ProductService,
+    private authService: AuthService, // ✅ Inyectamos AuthService
     private router: Router,
     private modalCtrl: ModalController
   ) {
@@ -178,7 +180,6 @@ export class DashboardPage implements OnInit {
   onSegmentChange(ev: any) {
     const v = ev?.detail?.value as 'resumen' | 'inventario' | 'ordenes';
     if (v === 'ordenes') {
-      // evitar pantalla en blanco
       this.vistaActiva = 'resumen';
       this.router.navigateByUrl('/pyme/orders');
       return;
@@ -187,41 +188,55 @@ export class DashboardPage implements OnInit {
   }
 
   irAOrdenes() {
-    // también evita que quede seleccionado "ordenes"
     this.vistaActiva = 'resumen';
     this.router.navigateByUrl('/pyme/orders');
   }
 
   // =========================
-  // UserData (localStorage)
+  // UserData (Usando AuthService)
   // =========================
-async cargarDatosUsuario() {
-  try {
-    const accesstoken = localStorage.getItem('accesstoken') || '';
+  async cargarDatosUsuario() {
+    try {
+      // ✅ 1. Obtenemos el token correctamente del servicio
+      const token = this.authService.getAccessToken();
 
-    const res = await fetch(
-      `${environment.apiUrl}/api/pyme/me`,
-      {
-        headers: {
-          Authorization: `Bearer ${accesstoken}`,
-        },
+      if (!token) {
+        console.warn('[Dashboard] No hay token, redirigiendo a login');
+        this.logout();
+        return;
       }
-    );
 
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
+      const res = await fetch(
+        `${environment.apiUrl}/api/pyme/me`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`, // ✅ Header correcto
+            'Content-Type': 'application/json'
+          },
+        }
+      );
+
+      if (!res.ok) {
+        // Si el token expiró (401), cerramos sesión
+        if (res.status === 401) {
+          this.logout();
+          return;
+        }
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      const pyme = await res.json();
+      console.log('✅ [Dashboard] Datos Pyme:', pyme);
+
+      this.empresaNombre = pyme.razon_social;
+      this.codigoPyme = pyme.codigo_pyme;
+
+    } catch (error) {
+      console.error('[PYME] Error cargando pyme', error);
+      this.empresaNombre = 'Mi Empresa';
+      this.codigoPyme = '';
     }
-
-    const pyme = await res.json();
-
-    this.empresaNombre = pyme.razon_social;
-    this.codigoPyme = pyme.codigo_pyme;
-  } catch (error) {
-    console.error('[PYME] Error cargando pyme', error);
-    this.empresaNombre = 'Mi Empresa';
-    this.codigoPyme = '';
   }
-}
 
   // =========================
   // Cargas
@@ -232,13 +247,23 @@ async cargarDatosUsuario() {
 
   async cargarMetricas() {
     try {
-      const response = await fetch('/api/pyme/dashboard/metrics', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      const token = this.authService.getAccessToken();
+      if (!token) return;
+
+      const response = await fetch(`${environment.apiUrl}/api/pyme/dashboard/metrics`, {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
       });
-      const data = await response.json();
-      this.metrics = data;
-    } catch {
-      // fallback dev
+      
+      if (response.ok) {
+        const data = await response.json();
+        this.metrics = data;
+      }
+    } catch (error) {
+      console.error('Error cargando métricas:', error);
+      // fallback
       this.metrics = {
         productosActivos: 0,
         ordenesActivas: 0,
@@ -251,14 +276,25 @@ async cargarDatosUsuario() {
 
   async cargarProductos() {
     try {
-      const response = await fetch('/api/pyme/productos', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('accesstoken')}` },
+      const token = this.authService.getAccessToken();
+      if (!token) return;
+
+      // ✅ Usamos environment.apiUrl para evitar rutas relativas fallidas
+      const response = await fetch(`${environment.apiUrl}/api/pyme/productos`, {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
       });
-      const data = await response.json();
-      this.productos = Array.isArray(data) ? data : [];
-      this.productosFiltrados = [...this.productos];
-      this.filtrarProductos();
-    } catch {
+      
+      if (response.ok) {
+        const data = await response.json();
+        this.productos = Array.isArray(data) ? data : [];
+        this.productosFiltrados = [...this.productos];
+        this.filtrarProductos();
+      }
+    } catch (error) {
+      console.error('Error cargando productos:', error);
       this.productos = [];
       this.productosFiltrados = [];
     }
@@ -317,9 +353,8 @@ async cargarDatosUsuario() {
   }
 
   logout() {
-    localStorage.removeItem('accesstoken');
-    localStorage.removeItem('userData');
-    this.router.navigateByUrl('/login', { replaceUrl: true });
+    // ✅ Usamos el método oficial del servicio
+    this.authService.logout(); 
   }
 }
 
