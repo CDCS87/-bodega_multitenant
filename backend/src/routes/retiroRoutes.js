@@ -1,13 +1,13 @@
 const express = require('express');
-const router = express.router();
+const router = express.Router();
 const retiroController = require('../controllers/retiroController');
-const authMiddleware = require('../middleware/auth'); // Tu middleware de seguridad
+const authMiddleware = require('../middlewares/authMiddleware'); // Tu middleware de seguridad
 
 // Ruta para la Pyme (Crear)
-router.post('/crear', authMiddleware, retiroController.createRetiro);
+router.post('/crear', authMiddleware, retiroController.crearRetiro);
 
 // Ruta para ver historial (Pyme)
-// router.get('/mis-retiros', authMiddleware, retiroController.getMyRetiros); 
+router.get('/mis-retiros', authMiddleware, retiroController.getMyRetiros); 
 
 // --- RUTAS PARA LA BODEGA (APP DE OPERARIOS) ---
 // 1. Escanear QR y ver checklist

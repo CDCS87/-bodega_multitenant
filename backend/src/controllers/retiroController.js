@@ -5,7 +5,7 @@ const sequelize = require('../config/database');
 const { v4: uuidv4 } = require('uuid'); // npm install uuid
 
 // 1. CREAR RETIRO (Lo que hace la Pyme desde la App)
-exports.createRetiro = async (req, res) => {
+exports.crearRetiro = async (req, res) => {
   const t = await sequelize.transaction(); // Transacción de seguridad
 
   try {

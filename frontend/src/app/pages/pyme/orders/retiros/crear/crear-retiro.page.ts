@@ -206,7 +206,6 @@ export class CrearRetiroPage implements OnInit {
         }))
       };
 
-      // ✅ Usamos createRetiro (o crearRetiro según tu servicio)
       this.retiroService.crearRetiro(payload).subscribe({
         next: async (res: any) => {
           this.creado = res.retiro || res;
