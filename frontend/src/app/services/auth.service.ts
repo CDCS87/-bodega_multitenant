@@ -203,6 +203,11 @@ export class AuthService {
     return user ? user.pyme_id : null;
   }
 
+  getMyPyme(): Observable<any> {
+    // Usamos el endpoint que ya tienes en pymeRoutes.js (/me)
+    return this.http.get(`${environment.apiUrl}/api/pyme/me`);
+  }
+
   /**
    *  REGISTRO
    */

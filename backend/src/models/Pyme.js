@@ -15,7 +15,11 @@ const Pyme = sequelize.define('Pyme', {
   razon_social: {
     type: DataTypes.STRING(255),
     allowNull: true
-  }
+  },
+  direccion: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
 }, {
   tableName: 'pymes',
   timestamps: false

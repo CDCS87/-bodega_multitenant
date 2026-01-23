@@ -11,30 +11,54 @@
 
   <ion-card *ngIf="!creado">
     <ion-card-header>
-      <ion-card-subtitle>Datos de Recolección</ion-card-subtitle>
+      <ion-card-subtitle>Punto de Retiro</ion-card-subtitle>
     </ion-card-header>
     <ion-card-content>
-      <ion-list lines="none">
-        <ion-item class="input-item">
-          <ion-label position="stacked">Dirección *</ion-label>
-          <ion-input [(ngModel)]="form.direccion" placeholder="Calle y Número"></ion-input>
-        </ion-item>
-        <ion-item class="input-item">
-          <ion-label position="stacked">Comuna *</ion-label>
-          <ion-input [(ngModel)]="form.comuna" placeholder="Ej: Providencia"></ion-input>
-        </ion-item>
-        <ion-item class="input-item">
-          <ion-label position="stacked">Horario Preferido</ion-label>
-          <ion-select [(ngModel)]="form.rango" interface="popover">
-            <ion-select-option value="CORTE_1">AM (11:00 - 15:00)</ion-select-option>
-            <ion-select-option value="CORTE_2">PM (16:00 - 20:00)</ion-select-option>
-          </ion-select>
-        </ion-item>
-        <ion-item class="input-item">
-          <ion-label position="stacked">Notas / Referencia</ion-label>
-          <ion-input [(ngModel)]="form.referencia" placeholder="Ej: Portón verde"></ion-input>
-        </ion-item>
-      </ion-list>
+      
+      <ion-item class="input-item">
+        <ion-label position="stacked">Empresa / Remitente</ion-label>
+        <ion-input [value]="pymeData?.razon_social || 'Cargando...'" readonly></ion-input>
+      </ion-item>
+
+      <ion-item lines="none" class="ion-margin-top">
+        <ion-label>Usar dirección registrada</ion-label>
+        <ion-toggle slot="end" 
+                    [(ngModel)]="usarDireccionRegistrada" 
+                    (ionChange)="toggleDireccion()">
+        </ion-toggle>
+      </ion-item>
+
+      <ion-item class="input-item">
+        <ion-label position="stacked">Dirección *</ion-label>
+        <ion-input 
+          [(ngModel)]="form.direccion" 
+          [readonly]="usarDireccionRegistrada"
+          placeholder="Calle y Número">
+        </ion-input>
+      </ion-item>
+
+      <ion-item class="input-item">
+        <ion-label position="stacked">Comuna *</ion-label>
+        <ion-input 
+          [(ngModel)]="form.comuna" 
+          [readonly]="usarDireccionRegistrada"
+          placeholder="Ej: Providencia">
+        </ion-input>
+      </ion-item>
+
+      <ion-item class="input-item">
+        <ion-label position="stacked">Horario Preferido</ion-label>
+        <ion-select [(ngModel)]="form.rango" interface="popover">
+          <ion-select-option value="CORTE_1">AM (11:00 - 15:00)</ion-select-option>
+          <ion-select-option value="CORTE_2">PM (16:00 - 20:00)</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item class="input-item">
+        <ion-label position="stacked">Notas / Referencia</ion-label>
+        <ion-input [(ngModel)]="form.referencia" placeholder="Ej: Portón verde"></ion-input>
+      </ion-item>
+
     </ion-card-content>
   </ion-card>
 
@@ -43,16 +67,12 @@
       <ion-card-title>Carga a Retirar</ion-card-title>
     </ion-card-header>
     <ion-card-content>
-      
       <ion-grid class="ion-no-padding">
         <ion-row>
           <ion-col size="8">
             <ion-item button (click)="setOpen(true)" lines="none" class="item-input">
               <ion-label position="stacked">Producto</ion-label>
-              <ion-input 
-                readonly 
-                placeholder="Buscar producto..." 
-                [value]="seleccion.producto?.nombre || ''">
+              <ion-input readonly placeholder="Buscar..." [value]="seleccion.producto?.nombre || ''">
                 <ion-icon name="search-outline" slot="end"></ion-icon>
               </ion-input>
             </ion-item>
@@ -66,17 +86,13 @@
         </ion-row>
       </ion-grid>
 
-      <ion-button expand="block" (click)="agregarItem()" 
-                  [disabled]="!seleccion.producto" class="ion-margin-top">
+      <ion-button expand="block" (click)="agregarItem()" [disabled]="!seleccion.producto" class="ion-margin-top">
         <ion-icon name="add-circle-outline" slot="start"></ion-icon>
         Agregar al Retiro
       </ion-button>
 
       <ion-list *ngIf="itemsRetiro.length > 0" class="ion-margin-top">
-        <ion-list-header>
-          <ion-label>Resumen de Carga</ion-label>
-        </ion-list-header>
-        
+        <ion-list-header><ion-label>Resumen de Carga</ion-label></ion-list-header>
         <ion-item-sliding *ngFor="let item of itemsRetiro; let i = index">
           <ion-item>
             <ion-icon name="cube-outline" slot="start" color="medium"></ion-icon>
@@ -93,17 +109,11 @@
           </ion-item-options>
         </ion-item-sliding>
       </ion-list>
-
-      <div *ngIf="itemsRetiro.length === 0" class="ion-text-center ion-padding-vertical">
-        <ion-text color="medium"><small>No has agregado productos aún.</small></ion-text>
-      </div>
-
     </ion-card-content>
   </ion-card>
 
   <div class="ion-padding" *ngIf="!creado">
-    <ion-button expand="block" size="large" (click)="submit()" 
-                [disabled]="loading || itemsRetiro.length === 0">
+    <ion-button expand="block" size="large" (click)="submit()" [disabled]="loading || itemsRetiro.length === 0">
       <ion-spinner *ngIf="loading"></ion-spinner>
       <span *ngIf="!loading">Generar Solicitud</span>
     </ion-button>
@@ -116,25 +126,12 @@
 
     <ion-card class="qr-card">
       <ion-card-content>
-        <img [src]="qrDataUrl" *ngIf="qrDataUrl" alt="Código QR de la solicitud de retiro" style="width: 100%; max-width: 250px;" />
+        <img [src]="qrDataUrl" *ngIf="qrDataUrl" style="width: 100%; max-width: 250px;" alt="Código QR de la solicitud de retiro" title="Código QR de la solicitud de retiro" />
       </ion-card-content>
     </ion-card>
 
-    <ion-grid>
-      <ion-row>
-        <ion-col>
-          <ion-button expand="block" fill="outline" (click)="imprimirQR()">
-            <ion-icon name="print-outline" slot="start"></ion-icon>
-            Imprimir Etiqueta
-          </ion-button>
-        </ion-col>
-        <ion-col>
-          <ion-button expand="block" routerLink="/pyme/orders">
-            Volver
-          </ion-button>
-        </ion-col>
-      </ion-row>
-    </ion-grid>
+    <ion-button expand="block" fill="outline" (click)="imprimirQR()">Imprimir Etiqueta</ion-button>
+    <ion-button expand="block" (click)="volver()">Volver</ion-button>
   </div>
 
   <ion-modal [isOpen]="isModalOpen" (didDismiss)="setOpen(false)">
@@ -142,30 +139,17 @@
       <ion-header>
         <ion-toolbar>
           <ion-title>Buscar Producto</ion-title>
-          <ion-buttons slot="end">
-            <ion-button (click)="setOpen(false)">Cerrar</ion-button>
-          </ion-buttons>
+          <ion-buttons slot="end"><ion-button (click)="setOpen(false)">Cerrar</ion-button></ion-buttons>
         </ion-toolbar>
         <ion-toolbar>
-          <ion-searchbar 
-            placeholder="Nombre o SKU..." 
-            (ionInput)="buscarProducto($event)"
-            [debounce]="250">
-          </ion-searchbar>
+          <ion-searchbar placeholder="Nombre o SKU..." (ionInput)="buscarProducto($event)" [debounce]="250"></ion-searchbar>
         </ion-toolbar>
       </ion-header>
       <ion-content>
         <ion-list>
           <ion-item *ngFor="let p of productosFiltrados" button (click)="seleccionarProducto(p)">
-            <ion-label>
-              <h2>{{ p.nombre }}</h2>
-              <p>SKU: {{ p.sku }} | Disp: {{ p.cantidad_disponible }}</p>
-            </ion-label>
+            <ion-label><h2>{{ p.nombre }}</h2><p>SKU: {{ p.sku }} | Disp: {{ p.cantidad_disponible }}</p></ion-label>
             <ion-icon name="add-circle-outline" slot="end" color="primary"></ion-icon>
-          </ion-item>
-          
-          <ion-item *ngIf="productosFiltrados.length === 0" lines="none">
-            <ion-label class="ion-text-center">No se encontraron productos.</ion-label>
           </ion-item>
         </ion-list>
       </ion-content>
