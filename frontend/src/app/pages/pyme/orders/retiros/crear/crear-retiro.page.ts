@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -6,9 +6,17 @@ import {
   IonButtons, IonBackButton,
   IonCard, IonCardContent,
   IonItem, IonLabel, IonInput, IonSelect, IonSelectOption,
-  IonTextarea, IonButton, IonSpinner, IonBadge, IonCardHeader, IonCardTitle, IonText } from '@ionic/angular/standalone';
+  IonTextarea, IonButton, IonSpinner, IonBadge, IonCardHeader, IonCardTitle, IonText,
+  IonGrid, IonRow, IonCol, IonList, IonListHeader, IonItemSliding, IonItemOptions, IonItemOption, IonIcon
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons'; // Necesario para iconos en Standalone
+import { trashOutline, addCircleOutline } from 'ionicons/icons';
 import { Router } from '@angular/router';
 import QRCode from 'qrcode';
+
+// ✅ Importamos tus servicios reales
+import { ProductService } from 'src/app/services/product.service';
+import { RetiroService } from 'src/app/services/retiro.service';
 
 type RangoRetiro = 'CORTE_1' | 'CORTE_2';
 
@@ -18,101 +26,177 @@ interface RetiroCreatePayload {
   rango: RangoRetiro;
   referencia?: string;
   observaciones?: string;
+  // ✅ Nuevo campo para los productos
+  detalles: { producto_id: number; cantidad: number }[];
 }
 
 interface RetiroCreado {
   id: string;
-  codigo: string; // lo que va en QR
+  codigo: string;
   rango: RangoRetiro;
   comuna: string;
   direccion: string;
   estado: 'SOLICITADO' | 'ASIGNADO';
-  transportista?: { id: string; nombre: string };
-  createdAt: string; // ISO
+  createdAt: string;
 }
 
 @Component({
   selector: 'app-pyme-retiro-crear',
   standalone: true,
-  imports: [IonText, IonCardTitle, IonCardHeader, 
+  imports: [
     CommonModule, FormsModule,
-    IonContent, IonHeader, IonToolbar, IonTitle,
-    IonButtons, IonBackButton,
-    IonCard, IonCardContent,
+    IonCard, IonCardContent, IonCardHeader, IonCardTitle,
     IonItem, IonLabel, IonInput, IonSelect, IonSelectOption,
-    IonTextarea, IonButton, IonSpinner, IonBadge
-  ],
+    IonButton, IonBadge,
+    IonGrid,
+    IonRow,
+    IonCol,
+    IonIcon,
+    IonList,
+    IonItemOptions,
+    IonItemOption,
+    IonItemSliding,
+    IonListHeader
+],
   templateUrl: './crear-retiro.page.html',
   styleUrls: ['./crear-retiro.page.scss']
 })
-export class CrearRetiroPage {
+export class CrearRetiroPage implements OnInit {
   loading = false;
 
-  form: RetiroCreatePayload = {
+  // Formulario base
+  form = {
     direccion: '',
     comuna: '',
-    rango: 'CORTE_1',
+    rango: 'CORTE_1' as RangoRetiro,
     referencia: '',
     observaciones: ''
+  };
+
+  // ✅ Lógica de Productos
+  productos: any[] = [];      // Inventario completo
+  itemsRetiro: any[] = [];    // Carrito de retiro
+  
+  seleccion = {
+    producto_id: null,
+    cantidad: 1
   };
 
   // Resultado
   creado: RetiroCreado | null = null;
   qrDataUrl: string | null = null;
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private productService: ProductService,
+    private retiroService: RetiroService // Usaremos el servicio real si está disponible
+  ) {
+    addIcons({ trashOutline, addCircleOutline });
+  }
 
-  // UI helper: texto del rango según informe (ajusta wording si quieres)
+  ngOnInit() {
+    this.cargarInventario();
+  }
+
+  // 1. Cargar productos desde el Backend
+  cargarInventario() {
+    this.productService.getProducts().subscribe({
+      next: (res: any) => {
+        // Ajusta según cómo responda tu API (res o res.productos)
+        this.productos = Array.isArray(res) ? res : (res.productos || []);
+      },
+      error: (err) => console.error('Error cargando inventario', err)
+    });
+  }
+
+  // 2. Agregar producto a la lista temporal
+  agregarItem() {
+    if (!this.seleccion.producto_id || this.seleccion.cantidad <= 0) return;
+
+    const prod = this.productos.find(p => p.id === this.seleccion.producto_id);
+    if (prod) {
+      // Si ya existe, sumamos cantidad
+      const existente = this.itemsRetiro.find(i => i.producto_id === this.seleccion.producto_id);
+      if (existente) {
+        existente.cantidad += this.seleccion.cantidad;
+      } else {
+        this.itemsRetiro.push({
+          producto_id: prod.id,
+          nombre: prod.nombre, // Solo visual
+          sku: prod.sku,       // Solo visual
+          cantidad: this.seleccion.cantidad
+        });
+      }
+      // Reset selección
+      this.seleccion = { producto_id: null, cantidad: 1 };
+    }
+  }
+
+  eliminarItem(index: number) {
+    this.itemsRetiro.splice(index, 1);
+  }
+
   rangoLabel(r: RangoRetiro) {
     return r === 'CORTE_1'
       ? 'Corte 1 (11:00) • retiro hoy (tarde)'
       : 'Corte 2 (18:00) • retiro mañana (mañana)';
   }
 
-  // ✅ aquí más adelante llamas tu backend real
-  private async crearRetiroAPI(payload: RetiroCreatePayload): Promise<RetiroCreado> {
-    // MOCK: simula asignación por zona + rango
-    const assigned = Math.random() > 0.2;
-
-    const id = crypto?.randomUUID?.() ?? String(Date.now());
-    const codigoBase = `PYME-001-RET-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${String(Math.floor(Math.random()*9999)).padStart(4,'0')}`;
-
-    return {
-      id,
-      codigo: `RET|${codigoBase}`,
-      rango: payload.rango,
-      comuna: payload.comuna,
-      direccion: payload.direccion,
-      estado: assigned ? 'ASIGNADO' : 'SOLICITADO',
-      transportista: assigned ? { id: 'T-01', nombre: 'Transportes Norte' } : undefined,
-      createdAt: new Date().toISOString()
-    };
-  }
-
+  // 3. Enviar al Backend
   async submit() {
-    if (!this.form.direccion.trim() || !this.form.comuna.trim()) return;
+    // Validaciones
+    if (!this.form.direccion.trim() || !this.form.comuna.trim()) {
+      alert('Faltan datos de dirección.');
+      return;
+    }
+    if (this.itemsRetiro.length === 0) {
+      alert('Debes agregar al menos un producto para retirar.');
+      return;
+    }
 
     this.loading = true;
     this.creado = null;
     this.qrDataUrl = null;
 
     try {
-      const retiro = await this.crearRetiroAPI({
-        ...this.form,
+      // Preparamos el payload real
+      const payload: RetiroCreatePayload = {
         direccion: this.form.direccion.trim(),
         comuna: this.form.comuna.trim(),
+        rango: this.form.rango,
         referencia: this.form.referencia?.trim(),
-        observaciones: this.form.observaciones?.trim()
+        observaciones: this.form.observaciones?.trim(),
+        detalles: this.itemsRetiro.map(item => ({
+          producto_id: item.producto_id,
+          cantidad: item.cantidad
+        }))
+      };
+
+      this.retiroService.crearRetiro(payload).subscribe({
+        next: async (res: any) => {
+          // Asumimos que el backend devuelve el objeto creado en res o res.retiro
+          const retiroResponse = res.retiro || res; 
+          
+          this.creado = retiroResponse;
+
+          // Generamos QR con el código que viene del backend
+          if (this.creado && this.creado.codigo) {
+            this.qrDataUrl = await QRCode.toDataURL(this.creado.codigo, {
+              margin: 1,
+              scale: 8
+            });
+          }
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error(err);
+          alert('Error al crear la solicitud.');
+          this.loading = false;
+        }
       });
 
-      this.creado = retiro;
-
-      // genera QR (dataURL)
-      this.qrDataUrl = await QRCode.toDataURL(retiro.codigo, {
-        margin: 1,
-        scale: 8
-      });
-    } finally {
+    } catch (error) {
+      console.error(error);
       this.loading = false;
     }
   }
@@ -129,23 +213,34 @@ export class CrearRetiroPage {
         <head>
           <title>${title}</title>
           <style>
-            body { font-family: Arial, sans-serif; padding: 24px; }
-            .wrap { max-width: 420px; margin: 0 auto; text-align: center; }
-            img { width: 280px; height: 280px; }
-            .code { font-size: 14px; margin-top: 10px; word-break: break-all; }
-            .meta { opacity: 0.8; margin-top: 6px; font-size: 12px; }
+            body { font-family: Arial, sans-serif; padding: 24px; text-align: center; }
+            .wrap { max-width: 400px; margin: 0 auto; border: 1px dashed #ccc; padding: 20px; }
+            img { width: 250px; height: 250px; }
+            .code { font-size: 18px; font-weight: bold; margin: 15px 0; }
+            .meta { font-size: 14px; color: #666; margin-bottom: 5px; }
+            .items { margin-top: 20px; text-align: left; border-top: 1px solid #eee; padding-top: 10px; }
+            .item-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
           </style>
         </head>
         <body>
           <div class="wrap">
-            <h2>QR Retiro</h2>
+            <h2>Etiqueta de Retiro</h2>
             <img src="${this.qrDataUrl}" />
             <div class="code">${this.creado.codigo}</div>
-            <div class="meta">${this.creado.comuna} • ${this.creado.direccion}</div>
-            <div class="meta">${this.rangoLabel(this.creado.rango)}</div>
+            <div class="meta">${this.creado.comuna}</div>
+            
+            <div class="items">
+              <strong>Contenido:</strong>
+              ${this.itemsRetiro.map(i => `
+                <div class="item-row">
+                  <span>${i.nombre}</span>
+                  <span>x${i.cantidad}</span>
+                </div>
+              `).join('')}
+            </div>
           </div>
           <script>
-            setTimeout(() => window.print(), 250);
+            setTimeout(() => window.print(), 500);
           </script>
         </body>
       </html>

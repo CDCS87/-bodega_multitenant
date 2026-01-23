@@ -1,152 +1,57 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/pyme/orders"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Solicitar Retiro</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-card>
+  <ion-card-header>
+    <ion-card-title>Productos a Retirar</ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
+    
+    <ion-grid>
+      <ion-row>
+        <ion-col size="8">
+          <ion-item class="item-input">
+            <ion-label position="stacked">Producto</ion-label>
+            <ion-select [(ngModel)]="seleccion.producto_id" placeholder="Seleccionar..." interface="popover">
+              <ion-select-option *ngFor="let p of productos" [value]="p.id">
+                {{ p.nombre }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+        </ion-col>
+        <ion-col size="4">
+          <ion-item class="item-input">
+            <ion-label position="stacked">Cant.</ion-label>
+            <ion-input type="number" [(ngModel)]="seleccion.cantidad" min="1"></ion-input>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
 
-<ion-content class="ion-padding">
+    <ion-button expand="block" fill="outline" (click)="agregarItem()" [disabled]="!seleccion.producto_id" class="ion-margin-top">
+      <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+      Agregar a la Caja
+    </ion-button>
 
-  <!-- ===================== -->
-  <!-- FORM -->
-  <!-- ===================== -->
+    <ion-list *ngIf="itemsRetiro.length > 0" class="ion-margin-top">
+      <ion-list-header>
+        <ion-label>Resumen de Carga</ion-label>
+      </ion-list-header>
+      
+      <ion-item-sliding *ngFor="let item of itemsRetiro; let i = index">
+        <ion-item>
+          <ion-label>
+            <h2>{{ item.nombre }}</h2>
+            <p>SKU: {{ item.sku }}</p>
+          </ion-label>
+          <ion-badge slot="end" color="dark">{{ item.cantidad }} un.</ion-badge>
+        </ion-item>
+        <ion-item-options side="end">
+          <ion-item-option color="danger" (click)="eliminarItem(i)">
+            <ion-icon name="trash-outline"></ion-icon>
+          </ion-item-option>
+        </ion-item-options>
+      </ion-item-sliding>
+    </ion-list>
 
-  <!-- 1) DIRECCIÓN -->
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Dirección de retiro</ion-card-title>
-    </ion-card-header>
-
-    <ion-card-content>
-      <ion-item>
-        <ion-label position="stacked">Comuna *</ion-label>
-        <ion-input
-          [(ngModel)]="form.comuna"
-          placeholder="Ej: Providencia">
-        </ion-input>
-      </ion-item>
-
-      <ion-item>
-        <ion-label position="stacked">Dirección retiro *</ion-label>
-        <ion-input
-          [(ngModel)]="form.direccion"
-          placeholder="Calle 123, depto...">
-        </ion-input>
-      </ion-item>
-
-      <ion-item>
-        <ion-label position="stacked">Referencia (opcional)</ion-label>
-        <ion-input
-          [(ngModel)]="form.referencia"
-          placeholder="Ej: conserjería / local 12">
-        </ion-input>
-      </ion-item>
-    </ion-card-content>
-  </ion-card>
-
-  <!-- 2) VENTANA / RANGO -->
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Ventana de retiro</ion-card-title>
-    </ion-card-header>
-
-    <ion-card-content>
-      <ion-item>
-        <ion-label position="stacked">Rango horario *</ion-label>
-        <ion-select [(ngModel)]="form.rango" placeholder="Selecciona un rango">
-          <ion-select-option value="CORTE_1">
-            Corte 1 (11:00) • hoy tarde
-          </ion-select-option>
-          <ion-select-option value="CORTE_2">
-            Corte 2 (18:00) • mañana mañana
-          </ion-select-option>
-        </ion-select>
-      </ion-item>
-
-      <ion-text color="medium">
-        <p style="margin: 8px 4px 0 4px; font-size: 13px;">
-          El rango define la ventana en que el transportista puede retirar.
-        </p>
-      </ion-text>
-    </ion-card-content>
-  </ion-card>
-
-  <!-- 3) NOTAS -->
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Notas</ion-card-title>
-    </ion-card-header>
-
-    <ion-card-content>
-      <ion-item>
-        <ion-label position="stacked">Observaciones (opcional)</ion-label>
-        <ion-textarea
-          [(ngModel)]="form.observaciones"
-          autoGrow="true"
-          placeholder="Indicaciones, horario preferente, etc.">
-        </ion-textarea>
-      </ion-item>
-
-      <ion-button
-        expand="block"
-        style="margin-top: 12px;"
-        [disabled]="loading || !form.comuna.trim() || !form.direccion.trim() || !form.rango"
-        (click)="submit()">
-        @if (loading) {
-          <ion-spinner name="crescent" style="margin-right: 8px;"></ion-spinner>
-        }
-        Generar retiro y QR
-      </ion-button>
-    </ion-card-content>
-  </ion-card>
-
-  <!-- ===================== -->
-  <!-- RESULTADO -->
-  <!-- ===================== -->
-  <ion-card *ngIf="creado">
-    <ion-card-content>
-      <div class="result-title">Retiro creado</div>
-
-      <div class="row">
-        <div class="label">Estado</div>
-        <ion-badge [color]="creado.estado === 'ASIGNADO' ? 'success' : 'warning'">
-          {{ creado.estado === 'ASIGNADO' ? 'Asignado' : 'Pendiente' }}
-        </ion-badge>
-      </div>
-
-      <div class="row" *ngIf="creado.transportista">
-        <div class="label">Transportista</div>
-        <div class="value">{{ creado.transportista.nombre }}</div>
-      </div>
-
-      <div class="row">
-        <div class="label">Rango</div>
-        <div class="value">{{ rangoLabel(creado.rango) }}</div>
-      </div>
-
-      <div class="code">
-        <div class="label">Código (QR)</div>
-        <div class="value mono">{{ creado.codigo }}</div>
-      </div>
-
-      <div class="qr" *ngIf="qrDataUrl">
-        <img [src]="qrDataUrl" alt="QR Retiro" />
-      </div>
-
-      <div class="result-actions">
-        <ion-button expand="block" (click)="imprimirQR()" [disabled]="!qrDataUrl">
-          Imprimir QR
-        </ion-button>
-        <ion-button expand="block" fill="outline" (click)="volverAOrdenes()">
-          Volver a Órdenes
-        </ion-button>
-      </div>
-    </ion-card-content>
-  </ion-card>
-
-</ion-content>
-
+  </ion-card-content>
+</ion-card>
 
 
