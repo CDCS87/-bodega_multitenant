@@ -34,13 +34,13 @@ Object.values(models).forEach((model) => {
   }
 });
 
-/* =========================
-   Asociaciones RETIROS
-========================= */
+
+//Asociaciones RETIROS
+
 // Relación con Detalle
 OrdenRetiro.hasMany(OrdenRetiroDetalle, {
   foreignKey: 'retiro_id', // CORREGIDO: Coincide con tu DB
-  as: 'detalle'
+  as: 'detalles'
 });
 OrdenRetiroDetalle.belongsTo(OrdenRetiro, {
   foreignKey: 'retiro_id', // CORREGIDO
@@ -61,13 +61,12 @@ OrdenRetiroEvidencia.belongsTo(OrdenRetiro, {
   as: 'orden'
 });
 
-/* =========================
-   Asociaciones DESPACHOS
-========================= */
+// Asociaciones DESPACHOS
+
 // Relación con Detalle
 OrdenDespacho.hasMany(OrdenDespachoDetalle, {
   foreignKey: 'despacho_id', // CORREGIDO: Coincide con tu DB
-  as: 'detalle'
+  as: 'detalles'
 });
 OrdenDespachoDetalle.belongsTo(OrdenDespacho, {
   foreignKey: 'despacho_id', // CORREGIDO
