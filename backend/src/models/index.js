@@ -4,8 +4,8 @@ const RefreshToken = require('./RefreshToken');
 const Product = require('./Product');
 const Pyme = require('./Pyme');
 
-const OrdenRetiro = require('./OrdenRetiro');
-const OrdenRetiroDetalle = require('./OrdenRetiroDetalle');
+const OrdenRetiro = require('./Retiro');
+const OrdenRetiroDetalle = require('./RetiroDetalle');
 const OrdenRetiroEvidencia = require('./OrdenRetiroEvidencia');
 
 const OrdenDespacho = require('./OrdenDespacho');

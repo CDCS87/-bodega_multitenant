@@ -98,6 +98,7 @@ export class CrearRetiroPage implements OnInit {
   cargarDatosPyme() {
     this.authService.getMyPyme().subscribe({
       next: (pyme) => {
+        console.log('🚨 DATOS RECIBIDOS DEL BACKEND:', pyme);
         this.pymeData = pyme;
         // Si el switch está activo al cargar, llenamos el formulario
         if (this.usarDireccionRegistrada) {
