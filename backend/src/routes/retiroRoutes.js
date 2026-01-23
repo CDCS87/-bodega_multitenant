@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const retiroController = require('../controllers/retiroController');
-const authMiddleware = require('../middlewares/authMiddleware'); // Tu middleware de seguridad
+const {authMiddleware} = require('../middlewares/authMiddleware'); // Tu middleware de seguridad
 
 // Ruta para la Pyme (Crear)
 router.post('/crear', authMiddleware, retiroController.crearRetiro);
