@@ -17,7 +17,7 @@
       
       <ion-item class="input-item">
         <ion-label position="stacked">Empresa / Remitente</ion-label>
-        <ion-input [value]="pymeData?.razon_social || 'Cargando...'" readonly></ion-input>
+        <ion-input [value]="pymeData?.nombrePyme || 'Cargando...'" readonly></ion-input>
       </ion-item>
 
       <ion-item lines="none" class="ion-margin-top">
@@ -25,8 +25,10 @@
         <ion-toggle slot="end" 
                     [(ngModel)]="usarDireccionRegistrada" 
                     (ionChange)="toggleDireccion()">
+        <ion-input [value]="pymeData?.direccionPyme || 'Cargando...'" readonly></ion-input>           
         </ion-toggle>
       </ion-item>
+
 
       <ion-item class="input-item">
         <ion-label position="stacked">Dirección *</ion-label>

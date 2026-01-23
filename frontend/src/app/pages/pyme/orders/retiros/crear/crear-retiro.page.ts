@@ -43,7 +43,7 @@ export class CrearRetiroPage implements OnInit {
 
   // Datos Pyme (Caché)
   pymeData: any = null;
-  usarDireccionRegistrada = true; // ✅ Estado del switch
+  usarDireccionRegistrada = true; 
 
   // Formulario
   form = {
@@ -74,14 +74,14 @@ export class CrearRetiroPage implements OnInit {
     private router: Router,
     private productService: ProductService,
     private retiroService: RetiroService,
-    private authService: AuthService // ✅ Inyectamos Auth
+    private authService: AuthService // 
   ) {
     addIcons({ trashOutline, addCircleOutline, searchOutline, closeOutline, qrCodeOutline, cubeOutline, printOutline, checkmarkCircle });
   }
 
   ngOnInit() {
     this.cargarInventario();
-    this.cargarDatosPyme(); // ✅ Cargamos datos al inicio
+    this.cargarDatosPyme(); // 
   }
 
   // --- 1. LÓGICA DE DATOS PYME ---

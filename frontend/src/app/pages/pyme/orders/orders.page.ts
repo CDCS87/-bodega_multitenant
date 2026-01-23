@@ -36,7 +36,7 @@ type Estado =
   styleUrls: ['./orders.page.scss']
 })
 export class OrdersPage {
-  empresaNombre = '';
+  nombrePyme = '';
   codigoPyme = '';
   direccionPyme = '';
 
@@ -66,9 +66,9 @@ export class OrdersPage {
     const ud = localStorage.getItem('userData');
     if (ud) {
       const u = JSON.parse(ud);
-      this.empresaNombre = u.empresa_nombre ?? '';
-      this.codigoPyme = u.codigo_pyme ?? '';
-      this.direccionPyme = u.direccion ?? '';
+      this.nombrePyme = u.nombrePyme ?? '';
+      this.codigoPyme = u.codigoPyme ?? '';
+      this.direccionPyme = u.direccionPyme ?? '';
     }
 
     this.reload();

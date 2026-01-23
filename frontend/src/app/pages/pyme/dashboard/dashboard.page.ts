@@ -227,22 +227,18 @@ export class DashboardPage implements OnInit {
       }
 
       const pyme = await res.json();
-      console.log('✅ [Dashboard] Datos Pyme:', pyme);
+      console.log(' [Dashboard] Datos Pyme:', pyme);
 
       this.nombrePyme = pyme.nombrePyme;
-      this.codigoPyme = pyme.codigo_pyme;
-      this.direccionPyme = pyme.direccion;
-
+      this.codigoPyme = pyme.codigoPyme;
+      this.direccionPyme = pyme.direccionPyme;
     } catch (error) {
       console.error('[PYME] Error cargando pyme', error);
       this.nombrePyme = 'Mi Empresa';
       
     }
   }
-
-  // =========================
   // Cargas
-  // =========================
   async cargarDashboard() {
     await Promise.all([this.cargarMetricas(), this.cargarProductos()]);
   }
