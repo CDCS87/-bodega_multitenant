@@ -8,16 +8,19 @@ const Pyme = sequelize.define('Pyme', {
     primaryKey: true,
     autoIncrement: true
   },
-  codigo_pyme: {
+  codigoPyme: {
     type: DataTypes.STRING(50),
+    field: 'codigo_pyme',
     allowNull: false
   },
-  razon_social: {
+  nombrePyme: {
     type: DataTypes.STRING(255),
+    field: 'razon_social',
     allowNull: true
   },
-  direccion: {
+  direccionPyme: {
     type: DataTypes.STRING(255),
+    field: 'direccion',
     allowNull: true
   },
 }, {
