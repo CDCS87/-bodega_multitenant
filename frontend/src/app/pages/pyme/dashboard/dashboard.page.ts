@@ -117,6 +117,7 @@ interface Producto {
 export class DashboardPage implements OnInit {
   // Datos de la empresa
   nombrePyme = 'Mi Empresa';
+  codigoPyme = '—';
   direccionPyme = '';
 
   // Métricas
@@ -229,7 +230,8 @@ export class DashboardPage implements OnInit {
       console.log('✅ [Dashboard] Datos Pyme:', pyme);
 
       this.nombrePyme = pyme.nombrePyme;
-      this.direccionPyme = pyme.direccionPyme;
+      this.codigoPyme = pyme.codigo_pyme;
+      this.direccionPyme = pyme.direccion;
 
     } catch (error) {
       console.error('[PYME] Error cargando pyme', error);
