@@ -38,6 +38,7 @@ type Estado =
 export class OrdersPage {
   empresaNombre = '';
   codigoPyme = '';
+  direccionPyme = '';
 
   loading = false;
 
@@ -67,6 +68,7 @@ export class OrdersPage {
       const u = JSON.parse(ud);
       this.empresaNombre = u.empresa_nombre ?? '';
       this.codigoPyme = u.codigo_pyme ?? '';
+      this.direccionPyme = u.direccion ?? '';
     }
 
     this.reload();
