@@ -1,57 +1,176 @@
-<ion-card>
-  <ion-card-header>
-    <ion-card-title>Productos a Retirar</ion-card-title>
-  </ion-card-header>
-  <ion-card-content>
-    
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/pyme/orders"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Solicitar Retiro</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-card *ngIf="!creado">
+    <ion-card-header>
+      <ion-card-subtitle>Datos de Recolección</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list lines="none">
+        <ion-item class="input-item">
+          <ion-label position="stacked">Dirección *</ion-label>
+          <ion-input [(ngModel)]="form.direccion" placeholder="Calle y Número"></ion-input>
+        </ion-item>
+        <ion-item class="input-item">
+          <ion-label position="stacked">Comuna *</ion-label>
+          <ion-input [(ngModel)]="form.comuna" placeholder="Ej: Providencia"></ion-input>
+        </ion-item>
+        <ion-item class="input-item">
+          <ion-label position="stacked">Horario Preferido</ion-label>
+          <ion-select [(ngModel)]="form.rango" interface="popover">
+            <ion-select-option value="CORTE_1">AM (11:00 - 15:00)</ion-select-option>
+            <ion-select-option value="CORTE_2">PM (16:00 - 20:00)</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item class="input-item">
+          <ion-label position="stacked">Notas / Referencia</ion-label>
+          <ion-input [(ngModel)]="form.referencia" placeholder="Ej: Portón verde"></ion-input>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card *ngIf="!creado">
+    <ion-card-header>
+      <ion-card-title>Carga a Retirar</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      
+      <ion-grid class="ion-no-padding">
+        <ion-row>
+          <ion-col size="8">
+            <ion-item button (click)="setOpen(true)" lines="none" class="item-input">
+              <ion-label position="stacked">Producto</ion-label>
+              <ion-input 
+                readonly 
+                placeholder="Buscar producto..." 
+                [value]="seleccion.producto?.nombre || ''">
+                <ion-icon name="search-outline" slot="end"></ion-icon>
+              </ion-input>
+            </ion-item>
+          </ion-col>
+          <ion-col size="4">
+            <ion-item lines="none" class="item-input">
+              <ion-label position="stacked">Cant.</ion-label>
+              <ion-input type="number" [(ngModel)]="seleccion.cantidad" min="1"></ion-input>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <ion-button expand="block" (click)="agregarItem()" 
+                  [disabled]="!seleccion.producto" class="ion-margin-top">
+        <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+        Agregar al Retiro
+      </ion-button>
+
+      <ion-list *ngIf="itemsRetiro.length > 0" class="ion-margin-top">
+        <ion-list-header>
+          <ion-label>Resumen de Carga</ion-label>
+        </ion-list-header>
+        
+        <ion-item-sliding *ngFor="let item of itemsRetiro; let i = index">
+          <ion-item>
+            <ion-icon name="cube-outline" slot="start" color="medium"></ion-icon>
+            <ion-label>
+              <h2>{{ item.nombre }}</h2>
+              <p>SKU: {{ item.sku }}</p>
+            </ion-label>
+            <ion-badge slot="end" color="tertiary">{{ item.cantidad }} un.</ion-badge>
+          </ion-item>
+          <ion-item-options side="end">
+            <ion-item-option color="danger" (click)="eliminarItem(i)">
+              <ion-icon name="trash-outline"></ion-icon>
+            </ion-item-option>
+          </ion-item-options>
+        </ion-item-sliding>
+      </ion-list>
+
+      <div *ngIf="itemsRetiro.length === 0" class="ion-text-center ion-padding-vertical">
+        <ion-text color="medium"><small>No has agregado productos aún.</small></ion-text>
+      </div>
+
+    </ion-card-content>
+  </ion-card>
+
+  <div class="ion-padding" *ngIf="!creado">
+    <ion-button expand="block" size="large" (click)="submit()" 
+                [disabled]="loading || itemsRetiro.length === 0">
+      <ion-spinner *ngIf="loading"></ion-spinner>
+      <span *ngIf="!loading">Generar Solicitud</span>
+    </ion-button>
+  </div>
+
+  <div *ngIf="creado" class="ion-text-center ion-padding">
+    <ion-icon name="checkmark-circle" color="success" style="font-size: 64px;"></ion-icon>
+    <h2>¡Solicitud Creada!</h2>
+    <p>Código: <strong>{{ creado.codigo }}</strong></p>
+
+    <ion-card class="qr-card">
+      <ion-card-content>
+        <img [src]="qrDataUrl" *ngIf="qrDataUrl" alt="Código QR de la solicitud de retiro" style="width: 100%; max-width: 250px;" />
+      </ion-card-content>
+    </ion-card>
+
     <ion-grid>
       <ion-row>
-        <ion-col size="8">
-          <ion-item class="item-input">
-            <ion-label position="stacked">Producto</ion-label>
-            <ion-select [(ngModel)]="seleccion.producto_id" placeholder="Seleccionar..." interface="popover">
-              <ion-select-option *ngFor="let p of productos" [value]="p.id">
-                {{ p.nombre }}
-              </ion-select-option>
-            </ion-select>
-          </ion-item>
+        <ion-col>
+          <ion-button expand="block" fill="outline" (click)="imprimirQR()">
+            <ion-icon name="print-outline" slot="start"></ion-icon>
+            Imprimir Etiqueta
+          </ion-button>
         </ion-col>
-        <ion-col size="4">
-          <ion-item class="item-input">
-            <ion-label position="stacked">Cant.</ion-label>
-            <ion-input type="number" [(ngModel)]="seleccion.cantidad" min="1"></ion-input>
-          </ion-item>
+        <ion-col>
+          <ion-button expand="block" routerLink="/pyme/orders">
+            Volver
+          </ion-button>
         </ion-col>
       </ion-row>
     </ion-grid>
+  </div>
 
-    <ion-button expand="block" fill="outline" (click)="agregarItem()" [disabled]="!seleccion.producto_id" class="ion-margin-top">
-      <ion-icon name="add-circle-outline" slot="start"></ion-icon>
-      Agregar a la Caja
-    </ion-button>
+  <ion-modal [isOpen]="isModalOpen" (didDismiss)="setOpen(false)">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Buscar Producto</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="setOpen(false)">Cerrar</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+        <ion-toolbar>
+          <ion-searchbar 
+            placeholder="Nombre o SKU..." 
+            (ionInput)="buscarProducto($event)"
+            [debounce]="250">
+          </ion-searchbar>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content>
+        <ion-list>
+          <ion-item *ngFor="let p of productosFiltrados" button (click)="seleccionarProducto(p)">
+            <ion-label>
+              <h2>{{ p.nombre }}</h2>
+              <p>SKU: {{ p.sku }} | Disp: {{ p.cantidad_disponible }}</p>
+            </ion-label>
+            <ion-icon name="add-circle-outline" slot="end" color="primary"></ion-icon>
+          </ion-item>
+          
+          <ion-item *ngIf="productosFiltrados.length === 0" lines="none">
+            <ion-label class="ion-text-center">No se encontraron productos.</ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 
-    <ion-list *ngIf="itemsRetiro.length > 0" class="ion-margin-top">
-      <ion-list-header>
-        <ion-label>Resumen de Carga</ion-label>
-      </ion-list-header>
-      
-      <ion-item-sliding *ngFor="let item of itemsRetiro; let i = index">
-        <ion-item>
-          <ion-label>
-            <h2>{{ item.nombre }}</h2>
-            <p>SKU: {{ item.sku }}</p>
-          </ion-label>
-          <ion-badge slot="end" color="dark">{{ item.cantidad }} un.</ion-badge>
-        </ion-item>
-        <ion-item-options side="end">
-          <ion-item-option color="danger" (click)="eliminarItem(i)">
-            <ion-icon name="trash-outline"></ion-icon>
-          </ion-item-option>
-        </ion-item-options>
-      </ion-item-sliding>
-    </ion-list>
-
-  </ion-card-content>
-</ion-card>
-
+</ion-content>
 
