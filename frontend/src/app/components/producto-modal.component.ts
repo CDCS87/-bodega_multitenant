@@ -4,17 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { ModalController, IonGrid, IonRow, IonCol } from '@ionic/angular/standalone';
 import { 
   IonHeader, IonToolbar, IonTitle, IonContent,
-  IonItem, IonLabel, IonInput, IonButton, IonList, IonText
+  IonItem, IonLabel, IonInput, IonButton, IonList, IonText, IonSpinner 
 } from '@ionic/angular/standalone';
-import { addIcons } from 'ionicons';
-import { closeOutline, alertCircleOutline } from 'ionicons/icons';
 
-// Importamos AuthService y Environment
-import { AuthService } from '../services/auth.service';
-import { environment } from '../../environments/environment';
-
-//  ProductService usa fetch directo
-// import { Product, ProductService } from '../services/product.service';
+// ✅ Volvemos a usar tu Servicio (Ya no necesitamos AuthService aquí)
+import { ProductService } from '../services/product.service';
 
 type KV = { key: string; value: string };
 
@@ -36,7 +30,6 @@ export class ProductoModalComponent {
   codigoBarras = '';
   sku = '';
   descripcionTexto = '';
-
   kv: KV[] = [{ key: '', value: '' }];
 
   saving = false;
@@ -44,41 +37,26 @@ export class ProductoModalComponent {
 
   constructor(
     private modalCtrl: ModalController,
-    private authService: AuthService 
-  ) {
-    addIcons({ closeOutline, alertCircleOutline });
-  }
+    private productService: ProductService // 
+  ) {}
 
-  addKV() {
-    this.kv.push({ key: '', value: '' });
-  }
 
-  removeKV(i: number) {
-    this.kv.splice(i, 1);
-    if (this.kv.length === 0) this.kv.push({ key: '', value: '' });
-  }
-
-  close() {
-    if (this.saving) return;
-    this.modalCtrl.dismiss();
-  }
+  addKV() { this.kv.push({ key: '', value: '' }); }
+  removeKV(i: number) { this.kv.splice(i, 1); if (this.kv.length === 0) this.kv.push({ key: '', value: '' }); }
+  close() { if (this.saving) return; this.modalCtrl.dismiss(); }
 
   private buildCaracteristicas(): Record<string, any> | null {
     const obj: Record<string, any> = {};
     const usedKeys = new Set<string>();
-
     for (const row of this.kv) {
       const k = (row.key ?? '').trim();
       const v = (row.value ?? '').trim();
       if (!k) continue;
-
       const keyLower = k.toLowerCase();
-      if (usedKeys.has(keyLower)) throw new Error(`La clave "${k}" está duplicada.`);
+      if (usedKeys.has(keyLower)) throw new Error(`Clave duplicada: ${k}`);
       usedKeys.add(keyLower);
-
       obj[k] = v;
     }
-
     return Object.keys(obj).length ? obj : null;
   }
 
@@ -86,22 +64,14 @@ export class ProductoModalComponent {
     if (!this.nombre.trim()) return { ok: false, message: 'El nombre es obligatorio.' };
     const cb = this.codigoBarras.trim();
     const sku = this.sku.trim();
-
-    if (cb && cb.length < 3) {
-      return { ok: false, message: 'El código de barras es muy corto.' };
-    }
-
-    if (sku && sku.length < 3) {
-      return { ok: false, message: 'El SKU debe tener al menos 3 caracteres.' };
-    }
-
-    try { this.buildCaracteristicas(); } catch (e: any) {
-      return { ok: false, message: e?.message || 'Error en características.' };
-    }
+    if (cb && cb.length < 3) return { ok: false, message: 'Código de barras muy corto.' };
+    if (sku && sku.length < 3) return { ok: false, message: 'SKU muy corto.' };
+    try { this.buildCaracteristicas(); } catch (e: any) { return { ok: false, message: e.message }; }
     return { ok: true };
   }
 
-  async save() {
+  // --- LÓGICA DE GUARDADO LIMPIA ---
+  save() {
     if (this.saving) return;
 
     this.errorMsg = '';
@@ -113,13 +83,12 @@ export class ProductoModalComponent {
 
     this.saving = true;
 
-    //  Payload
     let caracteristicas: Record<string, any> | null = null;
     try {
       caracteristicas = this.buildCaracteristicas();
     } catch (e: any) {
       this.saving = false;
-      this.errorMsg = e?.message || 'Error en características.';
+      this.errorMsg = e?.message;
       return;
     }
 
@@ -127,49 +96,27 @@ export class ProductoModalComponent {
       nombre: this.nombre.trim(),
       descripcion: this.descripcionTexto.trim() || null,
       caracteristicas_especificas: caracteristicas,
-      // Datos por defecto para el backend actual
-      cantidad_disponible: 0, 
-      stock_minimo: 5 
+      // Valores por defecto
+      stock_minimo: 5,
+      cantidad_disponible: 0 
     };
 
     if (this.codigoBarras.trim()) payload.codigo_barras = this.codigoBarras.trim();
     if (this.sku.trim()) payload.sku = this.sku.trim();
 
-    try {
-      // 2. Obtener Token del AuthService
-      const token = this.authService.getAccessToken(); 
-
-      if (!token) {
-        throw new Error('Sesión no válida. Inicia sesión de nuevo.');
+    //  Token para crear el producto
+    this.productService.createProduct(payload).subscribe({
+      next: (created) => {
+        this.saving = false;
+        this.modalCtrl.dismiss({ created });
+      },
+      error: (err) => {
+        console.error(err);
+        this.saving = false;
+        // El interceptor muestra errores de validación del backend
+        this.errorMsg = err.error?.message || 'Error al guardar el producto';
       }
-
-      // 3. Enviar con Fetch (bypass de problemas de Interceptor)
-      //  ruta '/api/pyme/productos'
-      const response = await fetch(`${environment.apiUrl}/api/pyme/productos`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` // Header de Auth
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Error al guardar en el servidor');
-      }
-
-      // 4. Éxito
-      this.saving = false;
-      this.modalCtrl.dismiss({ created: data.product || data });
-
-    } catch (error: any) {
-      console.error(error);
-      this.saving = false;
-      this.errorMsg = error.message || 'No se pudo crear el producto';
-    }
+    });
   }
 }
-
 
