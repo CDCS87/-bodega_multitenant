@@ -23,6 +23,11 @@ const Pyme = sequelize.define('Pyme', {
     field: 'direccion',
     allowNull: true
   },
+  comuna: {
+    type: DataTypes.STRING(50),
+    field: 'comuna',
+    allowNull: true
+  }
 }, {
   tableName: 'pymes',
   timestamps: false

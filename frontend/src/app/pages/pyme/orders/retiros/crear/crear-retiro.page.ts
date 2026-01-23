@@ -5,9 +5,9 @@ import {
   IonContent, IonHeader, IonToolbar, IonTitle,
   IonButtons, IonBackButton,
   IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle,
-  IonItem, IonLabel, IonInput, IonTextarea, IonButton, 
-  IonSpinner, IonBadge, IonText,
-  IonGrid, IonRow, IonCol, IonList, IonListHeader, 
+  IonItem, IonLabel, IonInput, IonButton,
+  IonSpinner, IonBadge,
+  IonGrid, IonRow, IonCol, IonList, IonListHeader,
   IonItemSliding, IonItemOptions, IonItemOption, IonIcon,
   IonModal, IonSearchbar, IonSelect, IonSelectOption,
   IonToggle
@@ -100,7 +100,7 @@ export class CrearRetiroPage implements OnInit {
       next: (pyme) => {
         console.log('🚨 DATOS RECIBIDOS DEL BACKEND:', pyme);
         this.pymeData = pyme;
-        // Si el switch está activo al cargar, llenamos el formulario
+        // Si el switch está activo al cargar, llenamos automáticamente
         if (this.usarDireccionRegistrada) {
           this.llenarDireccionConPyme();
         }
@@ -110,11 +110,11 @@ export class CrearRetiroPage implements OnInit {
   }
 
   toggleDireccion() {
-    // Si activa el switch, sobrescribimos con los datos guardados
     if (this.usarDireccionRegistrada) {
+      // Activa: Rellenamos ambos campos desde la Pyme
       this.llenarDireccionConPyme();
     } else {
-      // Si lo desactiva, limpiamos para que el usuario escriba
+      // Desactiva: Limpiamos ambos campos para ingreso manual
       this.form.direccion = '';
       this.form.comuna = '';
     }
@@ -122,9 +122,10 @@ export class CrearRetiroPage implements OnInit {
 
   private llenarDireccionConPyme() {
     if (this.pymeData) {
-      // ✅ CORRECCIÓN IMPORTANTE: Usamos 'pymeDireccion' (el alias del backend)
-      this.form.direccion = this.pymeData.pymeDireccion || ''; 
+      // Usamos los nombres correctos del Modelo (Pyme.js)
+      this.form.direccion = this.pymeData.direccionPyme || ''; 
       this.form.comuna = this.pymeData.comuna || '';
+      console.log('📝 Formulario autocompletado:', this.form);
     }
   }
 
@@ -182,7 +183,7 @@ export class CrearRetiroPage implements OnInit {
   // --- 3. ENVIAR SOLICITUD ---
   async submit() {
     if (!this.form.direccion.trim() || !this.form.comuna.trim()) {
-      alert('Faltan datos de dirección.');
+      alert('Faltan datos de dirección o comuna.');
       return;
     }
     if (this.itemsRetiro.length === 0) {
@@ -246,7 +247,7 @@ export class CrearRetiroPage implements OnInit {
         <body>
           <div class="box">
             <h2>ETIQUETA DE RETIRO</h2>
-            <p><strong>${this.pymeData?.pymeNombre || 'Pyme'}</strong></p>
+            <p><strong>${this.pymeData?.nombrePyme || 'Pyme'}</strong></p>
             <img src="${this.qrDataUrl}" />
             <div class="code">${this.creado.codigo}</div>
             <p><strong>${this.creado.comuna}</strong><br>${this.creado.direccion}</p>

@@ -1,255 +1,181 @@
-// Dashboard PYME Styles
 
 .dashboard-container,
-.inventario-container,
-.ordenes-container,
-.estadisticas-container {
-  padding: 16px;
-  padding-bottom: 80px; // Espacio para FAB
-}
-
-// Welcome Card
-.welcome-card {
-  background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
-  color: white;
-  margin-bottom: 16px;
-
-  ion-card-content {
-    padding: 24px;
-  }
-
-  .welcome-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .welcome-text {
-    margin: 0;
-    font-size: 14px;
-    opacity: 0.9;
-  }
-
-  .empresa-nombre {
-    margin: 8px 0 4px 0;
-    font-size: 24px;
-    font-weight: bold;
-  }
-
-  .codigo-pyme {
-    margin: 0;
-    font-size: 12px;
-    opacity: 0.8;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 4px 12px;
-    border-radius: 12px;
-    display: inline-block;
-  }
-
-  .welcome-icon {
-    font-size: 64px;
-    opacity: 0.3;
+.inventario-container {
+  padding-bottom: 80px; // Espacio extra al final para scroll cómodo
+  
+  // Centrado para pantallas grandes
+  @media (min-width: 768px) {
+    max-width: 1000px;
+    margin: 0 auto;
   }
 }
 
-// Metric Cards
-.metric-card {
-  margin-bottom: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
-  ion-card-content {
-    padding: 16px;
+ion-header {
+  ion-toolbar {
+    --border-style: none;
   }
+  
+  ion-segment {
+    padding: 0 10px 10px 10px;
+  }
+}
 
-  .metric-icon-container {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 12px;
 
-    ion-icon {
-      font-size: 24px;
+// VISTA: RESUMEN (DASHBOARD)
+.dashboard-container {
+
+  // 1. Tarjeta de Bienvenida 
+  > ion-card:first-child {
+    background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
+    color: white;
+    margin-bottom: 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(var(--ion-color-primary-rgb), 0.3);
+
+    h2 {
+      font-weight: 700;
+      font-size: 1.4rem;
+      letter-spacing: 0.5px;
     }
   }
 
-  .metric-value {
-    margin: 0 0 4px 0;
-    font-size: 32px;
-    font-weight: bold;
-    color: var(--ion-color-dark);
-  }
+  // 2. Grid de Métricas
+  ion-grid {
+    padding: 0;
 
-  .metric-label {
-    margin: 0;
-    font-size: 14px;
-    color: var(--ion-color-medium);
-  }
-}
+    ion-col {
+      padding: 5px;
+    }
 
-// Volumen Card
-.volumen-card {
-  .volumen-info {
-    margin: 8px 0;
+    // Tarjetas de métricas (Números grandes)
+    ion-card {
+      margin: 0;
+      height: 100%;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      
+      ion-card-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 20px 10px;
 
-    small {
-      color: var(--ion-color-medium);
+        h2 {
+          font-size: 2.5rem;
+          font-weight: 800;
+          color: var(--ion-color-dark);
+          margin: 0;
+          line-height: 1;
+        }
+
+        p {
+          font-size: 0.9rem;
+          color: var(--ion-color-medium);
+          margin-top: 5px;
+          margin-bottom: 0;
+        }
+      }
     }
   }
 
+  // 3. Barra de Progreso (Volumen)
   ion-progress-bar {
-    margin-top: 8px;
-    height: 8px;
-    border-radius: 4px;
-  }
-}
-
-// Stock Info
-.stock-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-
-  ion-badge {
-    font-size: 16px;
-    padding: 8px 12px;
+    height: 12px;
+    border-radius: 6px;
+    margin: 10px 0 5px 0;
+    background: var(--ion-color-light);
   }
 
   small {
-    font-size: 11px;
+    font-weight: 600;
     color: var(--ion-color-medium);
   }
-}
 
-// Orden Actions
-.orden-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-}
-
-// No Data Message
-.no-data {
-  text-align: center;
-  padding: 32px;
-  color: var(--ion-color-medium);
-  font-style: italic;
-}
-
-// Estadísticas
-.estadistica-item {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--ion-color-light);
-
-  &:last-child {
-    border-bottom: none;
-  }
-
-  ion-icon {
-    font-size: 32px;
-  }
-
-  .estadistica-info {
-    h3 {
-      margin: 0 0 4px 0;
-      font-size: 24px;
-      font-weight: bold;
-      color: var(--ion-color-dark);
-    }
-
-    p {
-      margin: 0;
-      font-size: 14px;
-      color: var(--ion-color-medium);
+  // 4. Botones de Acciones Rápidas
+  ion-button {
+    margin: 0;
+    height: 50px;
+    --border-radius: 12px;
+    font-weight: 600;
+    
+    ion-icon {
+      margin-right: 8px;
     }
   }
 }
 
-// Volumen Chart
-.volumen-chart {
-  padding: 16px 0;
-
-  .chart-bar {
-    width: 100%;
-    height: 32px;
-    background: var(--ion-color-light);
+// ==========================================
+// VISTA: INVENTARIO
+// ==========================================
+.inventario-container {
+  
+  // Barra de búsqueda y botón crear
+  ion-card {
     border-radius: 16px;
-    overflow: hidden;
-    position: relative;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   }
 
-  .chart-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--ion-color-success) 0%, var(--ion-color-success-shade) 100%);
-    transition: width 0.3s ease;
-
-    &.warning {
-      background: linear-gradient(90deg, var(--ion-color-warning) 0%, var(--ion-color-warning-shade) 100%);
-    }
-
-    &.danger {
-      background: linear-gradient(90deg, var(--ion-color-danger) 0%, var(--ion-color-danger-shade) 100%);
-    }
+  ion-searchbar {
+    padding-inline: 0;
+    padding-top: 0;
+    --box-shadow: none;
+    --background: var(--ion-color-light);
+    --border-radius: 10px;
+    margin-bottom: 15px;
   }
 
-  .chart-info {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 8px;
-    font-size: 12px;
-    color: var(--ion-color-medium);
+  // Lista de items
+  ion-list {
+    background: transparent;
+    padding: 0;
+  }
+
+  ion-item {
+    --padding-start: 0;
+    --inner-padding-end: 0;
+    --background: transparent;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--ion-color-light);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    ion-label {
+      h2 {
+        font-weight: 600;
+        font-size: 1rem;
+        color: var(--ion-color-dark);
+      }
+      p {
+        font-size: 0.85rem;
+        color: var(--ion-color-medium);
+      }
+    }
+
+    ion-badge {
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
   }
 }
 
-// Evidencia Container
-.evidencia-container {
-  padding: 16px;
-
-  img {
-    width: 100%;
-    height: auto;
-    border-radius: 8px;
-    margin-bottom: 16px;
+// ==========================================
+// MODO OSCURO (Opcional)
+// ==========================================
+@media (prefers-color-scheme: dark) {
+  .dashboard-container > ion-card:first-child {
+    // Un gradiente un poco más sutil en modo oscuro
+    background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
+    border: 1px solid #333;
   }
 
   ion-card {
-    margin-top: 16px;
-  }
-}
-
-// Responsive adjustments
-@media (min-width: 768px) {
-  .dashboard-container,
-  .inventario-container,
-  .ordenes-container,
-  .estadisticas-container {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  .metric-card {
-    .metric-value {
-      font-size: 36px;
-    }
-  }
-}
-
-// Dark mode support
-@media (prefers-color-scheme: dark) {
-  .welcome-card {
-    .codigo-pyme {
-      background: rgba(0, 0, 0, 0.3);
-    }
-  }
-
-  .metric-card {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --background: #1e1e1e;
   }
 }

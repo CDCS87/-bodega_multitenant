@@ -29,8 +29,6 @@ import {
   IonSearchbar,
   IonList,
   IonItem,
-  IonFab,
-  IonFabButton,
 } from '@ionic/angular/standalone';
 
 import { ModalController } from '@ionic/angular/standalone';
@@ -58,7 +56,6 @@ import {
 
 import { ProductService } from '../../../services/product.service';
 import { ProductoModalComponent } from '../../../components/producto-modal.component';
-// Importamos el servicio de autenticación
 import { AuthService } from '../../../services/auth.service';
 
 interface DashboardMetrics {
@@ -119,6 +116,7 @@ export class DashboardPage implements OnInit {
   nombrePyme = 'Mi Empresa';
   codigoPyme = '—';
   direccionPyme = '';
+  comuna = ''; // <--- 1. AGREGADO: Variable necesaria para el HTML
 
   // Métricas
   metrics: DashboardMetrics = {
@@ -139,7 +137,7 @@ export class DashboardPage implements OnInit {
 
   constructor(
     private productService: ProductService,
-    private authService: AuthService, // ✅ Inyectamos AuthService
+    private authService: AuthService,
     private router: Router,
     private modalCtrl: ModalController
   ) {
@@ -198,7 +196,6 @@ export class DashboardPage implements OnInit {
   // =========================
   async cargarDatosUsuario() {
     try {
-      // ✅ 1. Obtenemos el token correctamente del servicio
       const token = this.authService.getAccessToken();
 
       if (!token) {
@@ -211,14 +208,13 @@ export class DashboardPage implements OnInit {
         `${environment.apiUrl}/api/pyme/me`,
         {
           headers: {
-            'Authorization': `Bearer ${token}`, // ✅ Header correcto
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
         }
       );
 
       if (!res.ok) {
-        // Si el token expiró (401), cerramos sesión
         if (res.status === 401) {
           this.logout();
           return;
@@ -232,12 +228,14 @@ export class DashboardPage implements OnInit {
       this.nombrePyme = pyme.nombrePyme;
       this.codigoPyme = pyme.codigoPyme;
       this.direccionPyme = pyme.direccionPyme;
+      this.comuna = pyme.comuna || ''; // <--- 2. AGREGADO: Asignamos el valor que viene de la API
+      
     } catch (error) {
       console.error('[PYME] Error cargando pyme', error);
       this.nombrePyme = 'Mi Empresa';
-      
     }
   }
+
   // Cargas
   async cargarDashboard() {
     await Promise.all([this.cargarMetricas(), this.cargarProductos()]);
@@ -277,7 +275,6 @@ export class DashboardPage implements OnInit {
       const token = this.authService.getAccessToken();
       if (!token) return;
 
-      // ✅ Usamos environment.apiUrl para evitar rutas relativas fallidas
       const response = await fetch(`${environment.apiUrl}/api/pyme/productos`, {
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -351,8 +348,6 @@ export class DashboardPage implements OnInit {
   }
 
   logout() {
-    // ✅ Usamos el método oficial del servicio
     this.authService.logout(); 
   }
 }
-

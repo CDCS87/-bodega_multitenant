@@ -45,11 +45,13 @@
   <!-- ===================== -->
   <!-- VISTA RESUMEN -->
   <!-- ===================== -->
-  <div *ngIf="vistaActiva === 'resumen'" class="dashboard-container ion-padding">
+  @if (vistaActiva === 'resumen') {
+  <div class="dashboard-container ion-padding">
     <!-- Bienvenida -->
     <ion-card>
       <ion-card-content>
-        <h2 style="margin: 0;">{{ nombrePyme }}</h2>
+        <h2 style="margin: 0;">{{ nombrePyme }} <br><br> {{ direccionPyme }}. {{comuna}}
+        </h2>
       </ion-card-content>
     </ion-card>
 
@@ -127,11 +129,13 @@
       </ion-card-content>
     </ion-card>
   </div>
+  }
 
   <!-- ===================== -->
   <!-- VISTA INVENTARIO -->
   <!-- ===================== -->
-  <div *ngIf="vistaActiva === 'inventario'" class="inventario-container ion-padding">
+  @if (vistaActiva === 'inventario') {
+  <div class="inventario-container ion-padding">
     <ion-card>
       <ion-card-content>
         <ion-searchbar
@@ -159,7 +163,9 @@
           <ion-item *ngFor="let p of productosFiltrados">
             <ion-label>
               <h2>{{ p.nombre }}</h2>
-              <p *ngIf="p.sku">SKU: {{ p.sku }}</p>
+              @if (p.sku) {
+                <p>SKU: {{ p.sku }}</p>
+              }
             </ion-label>
 
             <ion-badge
@@ -176,6 +182,7 @@
       </ion-card-content>
     </ion-card>
   </div>
+  }
 </ion-content>
 
 
