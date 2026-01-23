@@ -115,5 +115,30 @@ exports.procesarRecepcionQR = async (req, res) => {
     await t.rollback();
     res.status(400).json({ message: error.message });
   }
+
+  // 4. OBTENER MIS RETIROS (Para el historial de la Pyme)
+exports.getMyRetiros = async (req, res) => {
+  try {
+    
+    const pyme_id = req.user.id; 
+
+    const retiros = await Retiro.findAll({
+      where: { pyme_id },
+      include: [
+        { 
+          model: RetiroDetalle, 
+          as: 'detalles', 
+          include: [{ model: Product, as: 'producto' }] 
+        }
+      ],
+      order: [['createdAt', 'DESC']] // Los más recientes primero
+    });
+
+    res.json(retiros);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al obtener el historial de retiros' });
+  }
+};
 };
 
