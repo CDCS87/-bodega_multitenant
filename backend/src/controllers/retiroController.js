@@ -4,12 +4,13 @@ const Product = require('../models/Product');
 const sequelize = require('../config/database');
 
 // 1. CREAR RETIRO
-exports.createRetiro = async (req, res) => {
+exports.crearRetiro = async (req, res) => {
   const t = await sequelize.transaction();
   try {
     const { direccion, comuna, rango, referencia, detalles } = req.body;
     const pyme_id = req.user.id;
 
+    // Generar código único
     const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
     const codigo = `RET-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${suffix}`;
 
@@ -26,7 +27,7 @@ exports.createRetiro = async (req, res) => {
       await RetiroDetalle.bulkCreate(detallesData, { transaction: t });
     }
     await t.commit();
-    res.status(201).json({ message: 'Retiro creado exitosamente', retiro: nuevoRetiro });
+    res.status(201).json({ message: 'Retiro creado', retiro: nuevoRetiro });
   } catch (error) {
     await t.rollback();
     console.error(error);
@@ -34,7 +35,7 @@ exports.createRetiro = async (req, res) => {
   }
 };
 
-// 2. OBTENER INFO POR QR
+// 2. OBTENER POR QR
 exports.getRetiroByCodigo = async (req, res) => {
   try {
     const { codigo } = req.params;
@@ -43,7 +44,7 @@ exports.getRetiroByCodigo = async (req, res) => {
       include: [
         { 
           model: RetiroDetalle, 
-          as: 'detalles', 
+          as: 'detalles',
           include: [{ model: Product, as: 'producto' }] 
         }
       ]
@@ -55,7 +56,7 @@ exports.getRetiroByCodigo = async (req, res) => {
   }
 };
 
-// 3. PROCESAR RECEPCIÓN
+// 3. RECEPCIONAR
 exports.procesarRecepcionQR = async (req, res) => {
   const t = await sequelize.transaction();
   try {
@@ -66,7 +67,7 @@ exports.procesarRecepcionQR = async (req, res) => {
     });
 
     if (!retiro) throw new Error('Retiro no existe');
-    if (retiro.estado === 'RECEPCIONADO') throw new Error('Este retiro ya fue procesado');
+    if (retiro.estado === 'RECEPCIONADO') throw new Error('Ya fue recepcionado');
 
     for (const item of retiro.detalles) {
       await Product.increment('cantidad_disponible', { 
@@ -80,7 +81,6 @@ exports.procesarRecepcionQR = async (req, res) => {
     retiro.fecha_recepcion = new Date();
     await retiro.save({ transaction: t });
     await t.commit();
-
     res.json({ message: 'Inventario actualizado', nuevo_estado: 'RECEPCIONADO' });
   } catch (error) {
     await t.rollback();
@@ -88,7 +88,7 @@ exports.procesarRecepcionQR = async (req, res) => {
   }
 };
 
-// 4. OBTENER MIS RETIROS (PYME)
+// 4. OBTENER MIS RETIROS (¡ESTA ES LA QUE TE FALTA!)
 exports.getMyRetiros = async (req, res) => {
   try {
     const pyme_id = req.user.id; 

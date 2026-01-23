@@ -1,19 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const retiroController = require('../controllers/retiroController');
-const { authMiddleware } = require('../middlewares/authMiddleware');
 
-// Ruta para la Pyme (Crear)
+// 👇 ¡IMPORTANTE! Las llaves { } son OBLIGATORIAS aquí
+const { authMiddleware } = require('../middlewares/authMiddleware'); 
+
+// Ruta para crear retiro (Línea 7 - Aquí es donde te está fallando ahora)
 router.post('/crear', authMiddleware, retiroController.crearRetiro);
 
-// Ruta para ver historial (Pyme)
+// Ruta para ver historial (Línea 10 - Esta fallará después si no actualizas el controlador)
 router.get('/mis-retiros', authMiddleware, retiroController.getMyRetiros); 
 
-// --- RUTAS PARA LA BODEGA (APP DE BODEGA) ---
-// 1. Escanear QR y ver checklist
+// Rutas de bodega
 router.get('/scan/:codigo', retiroController.getRetiroByCodigo);
-
-// 2. Confirmar recepción y sumar stock
 router.post('/recepcionar', retiroController.procesarRecepcionQR);
 
 module.exports = router;
