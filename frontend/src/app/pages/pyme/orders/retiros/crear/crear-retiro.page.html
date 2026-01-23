@@ -17,18 +17,19 @@
       
       <ion-item class="input-item">
         <ion-label position="stacked">Empresa / Remitente</ion-label>
-        <ion-input [value]="pymeData?.nombrePyme || 'Cargando...'" readonly></ion-input>
+        <ion-input [value]="pymeData?.pymeNombre || 'Cargando...'" readonly></ion-input>
       </ion-item>
 
       <ion-item lines="none" class="ion-margin-top">
-        <ion-label>Usar dirección registrada</ion-label>
+        <ion-label>
+          <h2>Usar dirección registrada</h2>
+          <p style="font-size: 12px; color: gray;">Cargar datos de mi cuenta</p>
+        </ion-label>
         <ion-toggle slot="end" 
                     [(ngModel)]="usarDireccionRegistrada" 
                     (ionChange)="toggleDireccion()">
-        <ion-input [value]="pymeData?.direccionPyme || 'Cargando...'" readonly></ion-input>           
         </ion-toggle>
       </ion-item>
-
 
       <ion-item class="input-item">
         <ion-label position="stacked">Dirección *</ion-label>
@@ -128,7 +129,7 @@
 
     <ion-card class="qr-card">
       <ion-card-content>
-        <img [src]="qrDataUrl" *ngIf="qrDataUrl" style="width: 100%; max-width: 250px;" alt="Código QR de la solicitud de retiro" title="Código QR de la solicitud de retiro" />
+        <img [src]="qrDataUrl" *ngIf="qrDataUrl" style="width: 100%; max-width: 250px;" alt="Código QR de la solicitud de retiro" />
       </ion-card-content>
     </ion-card>
 

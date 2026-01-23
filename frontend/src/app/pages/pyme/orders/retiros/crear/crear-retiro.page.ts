@@ -1,8 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonItem, IonLabel, IonInput, IonTextarea, IonButton, IonSpinner, IonBadge, IonText, IonGrid, IonRow, IonCol, IonList, IonListHeader, IonItemSliding, IonItemOptions, IonItemOption, IonIcon, IonModal, IonSearchbar, IonSelect, IonSelectOption, IonToggle // ✅ Nuevo componente para el switch
-, IonCardSubtitle } from '@ionic/angular/standalone';
+import {
+  IonContent, IonHeader, IonToolbar, IonTitle,
+  IonButtons, IonBackButton,
+  IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle,
+  IonItem, IonLabel, IonInput, IonTextarea, IonButton, 
+  IonSpinner, IonBadge, IonText,
+  IonGrid, IonRow, IonCol, IonList, IonListHeader, 
+  IonItemSliding, IonItemOptions, IonItemOption, IonIcon,
+  IonModal, IonSearchbar, IonSelect, IonSelectOption,
+  IonToggle
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { 
   trashOutline, addCircleOutline, searchOutline, 
@@ -15,7 +24,7 @@ import QRCode from 'qrcode';
 // Servicios
 import { ProductService } from 'src/app/services/product.service';
 import { RetiroService } from 'src/app/services/retiro.service';
-import { AuthService } from 'src/app/services/auth.service'; // ✅ Importamos Auth
+import { AuthService } from 'src/app/services/auth.service';
 
 type RangoRetiro = 'CORTE_1' | 'CORTE_2';
 
@@ -26,14 +35,13 @@ type RangoRetiro = 'CORTE_1' | 'CORTE_2';
     CommonModule, FormsModule,
     IonContent, IonHeader, IonToolbar, IonTitle,
     IonButtons, IonBackButton,
-    IonCard, IonCardContent, IonCardHeader, IonCardTitle,
+    IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle,
     IonItem, IonLabel, IonInput, IonButton,
     IonSpinner, IonBadge,
     IonGrid, IonRow, IonCol, IonList, IonListHeader,
     IonItemSliding, IonItemOptions, IonItemOption, IonIcon,
     IonModal, IonSearchbar, IonSelect, IonSelectOption,
-    IonToggle,
-    IonCardSubtitle
+    IonToggle
 ],
   templateUrl: './crear-retiro.page.html',
   styleUrls: ['./crear-retiro.page.scss']
@@ -43,6 +51,8 @@ export class CrearRetiroPage implements OnInit {
 
   // Datos Pyme (Caché)
   pymeData: any = null;
+  
+  // Switch: Inicia activado para cargar la dirección automáticamente
   usarDireccionRegistrada = true; 
 
   // Formulario
@@ -74,14 +84,14 @@ export class CrearRetiroPage implements OnInit {
     private router: Router,
     private productService: ProductService,
     private retiroService: RetiroService,
-    private authService: AuthService // 
+    private authService: AuthService
   ) {
     addIcons({ trashOutline, addCircleOutline, searchOutline, closeOutline, qrCodeOutline, cubeOutline, printOutline, checkmarkCircle });
   }
 
   ngOnInit() {
     this.cargarInventario();
-    this.cargarDatosPyme(); // 
+    this.cargarDatosPyme();
   }
 
   // --- 1. LÓGICA DE DATOS PYME ---
@@ -89,7 +99,7 @@ export class CrearRetiroPage implements OnInit {
     this.authService.getMyPyme().subscribe({
       next: (pyme) => {
         this.pymeData = pyme;
-        // Si hay datos y el switch está activo, llenamos el formulario
+        // Si el switch está activo al cargar, llenamos el formulario
         if (this.usarDireccionRegistrada) {
           this.llenarDireccionConPyme();
         }
@@ -103,7 +113,7 @@ export class CrearRetiroPage implements OnInit {
     if (this.usarDireccionRegistrada) {
       this.llenarDireccionConPyme();
     } else {
-      // Si lo desactiva, limpiamos para que escriba (opcional, o dejar lo que estaba)
+      // Si lo desactiva, limpiamos para que el usuario escriba
       this.form.direccion = '';
       this.form.comuna = '';
     }
@@ -111,12 +121,13 @@ export class CrearRetiroPage implements OnInit {
 
   private llenarDireccionConPyme() {
     if (this.pymeData) {
-      this.form.direccion = this.pymeData.direccion_comercial || '';
+      // ✅ CORRECCIÓN IMPORTANTE: Usamos 'pymeDireccion' (el alias del backend)
+      this.form.direccion = this.pymeData.pymeDireccion || ''; 
       this.form.comuna = this.pymeData.comuna || '';
     }
   }
 
-  // --- 2. LÓGICA DE PRODUCTOS (IGUAL QUE ANTES) ---
+  // --- 2. LÓGICA DE PRODUCTOS ---
   cargarInventario() {
     this.productService.getProducts().subscribe({
       next: (res: any) => {
@@ -148,6 +159,7 @@ export class CrearRetiroPage implements OnInit {
   agregarItem() {
     if (!this.seleccion.producto || this.seleccion.cantidad <= 0) return;
     const prod = this.seleccion.producto;
+    
     const existe = this.itemsRetiro.find(i => i.producto_id === prod.id);
     if (existe) {
       existe.cantidad += this.seleccion.cantidad;
@@ -181,12 +193,19 @@ export class CrearRetiroPage implements OnInit {
     try {
       const payload = {
         ...this.form,
+        // Eliminamos espacios en blanco accidentales
+        direccion: this.form.direccion.trim(),
+        comuna: this.form.comuna.trim(),
+        referencia: this.form.referencia?.trim(),
+        observaciones: this.form.observaciones?.trim(),
+        // Detalle de productos
         detalles: this.itemsRetiro.map(i => ({
           producto_id: i.producto_id,
           cantidad: i.cantidad
         }))
       };
 
+      // ✅ Usamos createRetiro (o crearRetiro según tu servicio)
       this.retiroService.crearRetiro(payload).subscribe({
         next: async (res: any) => {
           this.creado = res.retiro || res;
@@ -201,11 +220,49 @@ export class CrearRetiroPage implements OnInit {
         }
       });
     } catch (error) {
+      console.error(error);
       this.loading = false;
     }
   }
-  
-  // (Mantienes imprimirQR y volver igual que antes...)
-  imprimirQR() { /* ... tu código de impresión ... */ }
-  volver() { this.router.navigate(['/pyme/orders']); }
+
+  // --- 4. IMPRIMIR QR ---
+  imprimirQR() {
+    if (!this.creado || !this.qrDataUrl) return;
+    const w = window.open('', '_blank');
+    if (!w) return;
+
+    w.document.write(`
+      <html>
+        <head>
+          <title>Retiro ${this.creado.codigo}</title>
+          <style>
+            body { font-family: sans-serif; padding: 20px; text-align: center; }
+            .box { border: 2px solid #000; padding: 20px; max-width: 400px; margin: 0 auto; }
+            img { width: 200px; }
+            .code { font-size: 24px; font-weight: bold; margin: 10px 0; }
+            .items { text-align: left; margin-top: 20px; border-top: 1px dashed #ccc; padding-top: 10px; }
+          </style>
+        </head>
+        <body>
+          <div class="box">
+            <h2>ETIQUETA DE RETIRO</h2>
+            <p><strong>${this.pymeData?.pymeNombre || 'Pyme'}</strong></p>
+            <img src="${this.qrDataUrl}" />
+            <div class="code">${this.creado.codigo}</div>
+            <p><strong>${this.creado.comuna}</strong><br>${this.creado.direccion}</p>
+            <div class="items">
+              <strong>Contenido:</strong><br>
+              ${this.itemsRetiro.map(i => `${i.cantidad}x ${i.nombre}`).join('<br>')}
+            </div>
+          </div>
+          <script>setTimeout(() => window.print(), 500);</script>
+        </body>
+      </html>
+    `);
+    w.document.close();
+  }
+
+  volver() {
+    this.router.navigate(['/pyme/orders']);
+  }
 }
