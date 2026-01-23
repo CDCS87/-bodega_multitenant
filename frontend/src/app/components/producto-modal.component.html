@@ -12,7 +12,7 @@
   </ion-item>
 
   <ion-item>
-    <ion-label position="stacked">Código de barras *</ion-label>
+    <ion-label position="stacked">Código de barras (si no existe, crear SKU)</ion-label>
     <ion-input [(ngModel)]="codigoBarras" [disabled]="saving"></ion-input>
   </ion-item>
 
@@ -21,7 +21,7 @@
     <ion-input [(ngModel)]="sku" [disabled]="saving"></ion-input>
   </ion-item>
 
-  <!-- ✅ TEXT en BD -->
+  <!--  TEXT en BD -->
   <ion-item>
     <ion-label position="stacked">Descripción (opcional)</ion-label>
     <ion-input [(ngModel)]="descripcionTexto" [disabled]="saving"></ion-input>
@@ -30,7 +30,7 @@
   <!--  JSONB en BD: caracteristicas_especificas -->
   <h3 class="mt">Características del Producto</h3>
   <ion-text class="hint">
-    Agrega campos clave/valor (ej: marca=ACME, color=Rojo).
+    Agrega campos clave/valor (ej: talla=M, color=Rojo).
   </ion-text>
 
 <ion-list>

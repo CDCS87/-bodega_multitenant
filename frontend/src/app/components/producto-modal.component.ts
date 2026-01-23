@@ -1,25 +1,32 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ModalController, IonGrid, IonRow, IonCol } from '@ionic/angular/standalone'; // ✅ AQUÍ
-
-import {
+import { ModalController, IonGrid, IonRow, IonCol } from '@ionic/angular/standalone';
+import { 
   IonHeader, IonToolbar, IonTitle, IonContent,
   IonItem, IonLabel, IonInput, IonButton, IonList, IonText
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { closeOutline, alertCircleOutline } from 'ionicons/icons';
 
-import { Product, ProductService } from '../services/product.service';
+// Importamos AuthService y Environment
+import { AuthService } from '../services/auth.service';
+import { environment } from '../../environments/environment';
+
+//  ProductService usa fetch directo
+// import { Product, ProductService } from '../services/product.service';
 
 type KV = { key: string; value: string };
 
 @Component({
   selector: 'app-producto-modal',
   standalone: true,
-  imports: [IonCol, IonRow, 
-    CommonModule, FormsModule,
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonGrid, IonRow, IonCol,
     IonHeader, IonToolbar, IonTitle, IonContent,
-    IonItem, IonLabel, IonInput, IonButton, IonList, IonText,
-    IonGrid
+    IonItem, IonLabel, IonInput, IonButton, IonList, IonText
 ],
   templateUrl: './producto-modal.component.html',
   styleUrls: ['./producto-modal.component.scss'],
@@ -37,8 +44,10 @@ export class ProductoModalComponent {
 
   constructor(
     private modalCtrl: ModalController,
-    private productService: ProductService
-  ) {}
+    private authService: AuthService 
+  ) {
+    addIcons({ closeOutline, alertCircleOutline });
+  }
 
   addKV() {
     this.kv.push({ key: '', value: '' });
@@ -78,17 +87,13 @@ export class ProductoModalComponent {
     const cb = this.codigoBarras.trim();
     const sku = this.sku.trim();
 
-      if (!cb && !sku) {
-        return { ok: false, message: 'Debes ingresar código de barras o SKU (al menos uno).' };
-      }
+    if (cb && cb.length < 3) {
+      return { ok: false, message: 'El código de barras es muy corto.' };
+    }
 
-      if (cb && cb.length < 5) {
-        return { ok: false, message: 'El código de barras parece inválido.' };
-      }
-
-      if (sku && sku.length < 3) {
-        return { ok: false, message: 'El SKU debe tener al menos 3 caracteres.' };
-      }
+    if (sku && sku.length < 3) {
+      return { ok: false, message: 'El SKU debe tener al menos 3 caracteres.' };
+    }
 
     try { this.buildCaracteristicas(); } catch (e: any) {
       return { ok: false, message: e?.message || 'Error en características.' };
@@ -96,7 +101,7 @@ export class ProductoModalComponent {
     return { ok: true };
   }
 
-  save() {
+  async save() {
     if (this.saving) return;
 
     this.errorMsg = '';
@@ -108,6 +113,7 @@ export class ProductoModalComponent {
 
     this.saving = true;
 
+    //  Payload
     let caracteristicas: Record<string, any> | null = null;
     try {
       caracteristicas = this.buildCaracteristicas();
@@ -117,29 +123,52 @@ export class ProductoModalComponent {
       return;
     }
 
-    const cb = this.codigoBarras.trim();
-    const sku = this.sku.trim();
-
     const payload: any = {
       nombre: this.nombre.trim(),
-      descripcion: this.descripcionTexto.trim() ? this.descripcionTexto.trim() : null,
-      caracteristicas_especificas: caracteristicas
+      descripcion: this.descripcionTexto.trim() || null,
+      caracteristicas_especificas: caracteristicas,
+      // Datos por defecto para el backend actual
+      cantidad_disponible: 0, 
+      stock_minimo: 5 
     };
 
-    if (cb) payload.codigo_barras = cb;
-    if (sku) payload.sku = sku;
+    if (this.codigoBarras.trim()) payload.codigo_barras = this.codigoBarras.trim();
+    if (this.sku.trim()) payload.sku = this.sku.trim();
 
-    this.productService.createProduct(payload).subscribe({
-      next: (created: Product) => {
-        this.saving = false;
-        this.modalCtrl.dismiss({ created });
-      },
-      error: (err) => {
-        this.saving = false;
-        this.errorMsg = err?.error?.message || 'No se pudo crear el producto';
+    try {
+      // 2. Obtener Token del AuthService
+      const token = this.authService.getAccessToken(); 
+
+      if (!token) {
+        throw new Error('Sesión no válida. Inicia sesión de nuevo.');
       }
-      
-    });
+
+      // 3. Enviar con Fetch (bypass de problemas de Interceptor)
+      //  ruta '/api/pyme/productos'
+      const response = await fetch(`${environment.apiUrl}/api/pyme/productos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // Header de Auth
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al guardar en el servidor');
+      }
+
+      // 4. Éxito
+      this.saving = false;
+      this.modalCtrl.dismiss({ created: data.product || data });
+
+    } catch (error: any) {
+      console.error(error);
+      this.saving = false;
+      this.errorMsg = error.message || 'No se pudo crear el producto';
+    }
   }
 }
 
