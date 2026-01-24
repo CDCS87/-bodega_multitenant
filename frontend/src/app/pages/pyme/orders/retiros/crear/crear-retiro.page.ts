@@ -11,7 +11,7 @@ import {
   IonGrid, IonRow, IonCol, IonList, IonListHeader,
   IonItemSliding, IonItemOptions, IonItemOption, IonIcon,
   IonModal, IonSearchbar, IonSelect, IonSelectOption,
-  IonToggle
+  IonToggle, AlertController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { 
@@ -40,11 +40,13 @@ type RangoRetiro = 'CORTE_1' | 'CORTE_2';
     IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCardSubtitle,
     IonItem, IonLabel, IonInput, IonButton,
     IonSpinner, IonBadge,
-    IonGrid, IonRow, IonCol, IonList, IonListHeader,
+    IonList, IonListHeader,
     IonItemSliding, IonItemOptions, IonItemOption, IonIcon,
-    IonModal, IonSearchbar, IonSelect, IonSelectOption,
-    IonToggle
-  ],
+    IonSelect, IonSelectOption,
+    IonToggle,
+    IonModal,
+    IonSearchbar
+],
   templateUrl: './crear-retiro.page.html',
   styleUrls: ['./crear-retiro.page.scss']
 })
@@ -86,7 +88,8 @@ export class CrearRetiroPage implements OnInit {
     private router: Router,
     private productService: ProductService,
     private retiroService: RetiroService,
-    private authService: AuthService
+    private authService: AuthService,
+    private alertController: AlertController
   ) {
     addIcons({ trashOutline, addCircleOutline, searchOutline, closeOutline, qrCodeOutline, cubeOutline, printOutline, checkmarkCircle });
   }
@@ -147,33 +150,89 @@ export class CrearRetiroPage implements OnInit {
 
   buscarProducto(event: any) {
     const query = event.target.value.toLowerCase();
-    this.productosFiltrados = this.productos.filter(p => 
-      p.nombre.toLowerCase().includes(query) || 
-      (p.sku && p.sku.toLowerCase().includes(query))
-    );
+
+    // Filtramos la lista local
+    this.productosFiltrados = this.productos.filter(p => {
+      // 1. Obtenemos los valores en minúsculas (usamos '' si vienen vacíos para que no de error)
+      const nombre = p.nombre ? p.nombre.toLowerCase() : '';
+      const sku = p.sku ? p.sku.toLowerCase() : '';
+      const barras = p.codigo_barras ? p.codigo_barras.toLowerCase() : ''; // <--- NUEVO CAMPO
+
+      // 2. Revisamos si lo que escribiste está en ALGUNO de los 3
+      return nombre.includes(query) || 
+             sku.includes(query) || 
+             barras.includes(query);
+    });
   }
 
-  seleccionarProducto(producto: any) {
-    this.seleccion.producto = producto;
+  // 2. Nueva función directa (Reemplaza a seleccionarProducto anterior)
+  async seleccionarProducto(producto: any) {
+    // 1. Cerramos el buscador inmediatamente
     this.setOpen(false);
+
+    // 2. Creamos la alerta
+    const alert = await this.alertController.create({
+      header: `Agregar ${producto.nombre}`,
+      subHeader: `Stock disponible: ${producto.stock_actual || 0}`,
+      inputs: [
+        {
+          name: 'cantidad',
+          type: 'number',
+          placeholder: 'Ej: 10', 
+          min: 1,
+          attributes: {
+            inputmode: 'numeric',
+            autofocus: true 
+          }
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Agregar',
+          handler: (data: any) => {
+            const cantidad = parseInt(data.cantidad, 10);
+            
+            if (cantidad && cantidad > 0) {
+              this.seleccion.producto = producto;
+              this.seleccion.cantidad = cantidad;
+              this.agregarItem();
+              return true;
+            } else {
+              return false;
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
   }
 
+  // Agrega el producto seleccionado a la lista de items del retiro
   agregarItem() {
-    if (!this.seleccion.producto || this.seleccion.cantidad <= 0) return;
-    const prod = this.seleccion.producto;
-    
-    const existe = this.itemsRetiro.find(i => i.producto_id === prod.id);
-    if (existe) {
-      existe.cantidad += this.seleccion.cantidad;
+    const producto = this.seleccion.producto;
+    const cantidad = this.seleccion.cantidad;
+    if (!producto || !cantidad || cantidad < 1) return;
+
+    // Verifica si el producto ya está en la lista
+    const existente = this.itemsRetiro.find(i => i.producto_id === producto.id);
+    if (existente) {
+      existente.cantidad += cantidad;
     } else {
       this.itemsRetiro.push({
-        producto_id: prod.id,
-        nombre: prod.nombre,
-        sku: prod.sku,
-        cantidad: this.seleccion.cantidad
+        producto_id: producto.id,
+        nombre: producto.nombre,
+        sku: producto.sku,
+        cantidad: cantidad
       });
     }
-    this.seleccion = { producto: null, cantidad: 1 };
+    // Limpia la selección
+    this.seleccion.producto = null;
+    this.seleccion.cantidad = 1;
   }
 
   eliminarItem(index: number) {
@@ -183,7 +242,7 @@ export class CrearRetiroPage implements OnInit {
   // --- 3. ENVIAR SOLICITUD Y GENERAR QR ---
   async submit() {
     // Validaciones básicas
-    if (!this.form.direccion.trim() || !this.form.comuna.trim()) {
+   if (!this.form.direccion.trim() || !this.form.comuna.trim()) {
       alert('Faltan datos de dirección o comuna.');
       return;
     }
@@ -210,6 +269,7 @@ export class CrearRetiroPage implements OnInit {
 
     this.retiroService.crearRetiro(payload).subscribe({
       next: async (res: any) => {
+        console.log('📦 Respuesta Backend:', res)
         // Obtenemos el objeto retiro creado
         this.creado = res.retiro || res;
 
@@ -241,72 +301,69 @@ export class CrearRetiroPage implements OnInit {
     });
   }
 
+  // --- NUEVA FUNCIÓN: Se llama solo cuando el usuario quiere hacer OTRO retiro ---
+  nuevaSolicitud() {
+    this.creado = null;
+    this.qrDataUrl = null;
+    this.itemsRetiro = []; // Ahora sí limpiamos los productos
+    this.form.observaciones = '';
+    this.form.referencia = '';
+    // Mantenemos dirección y comuna por comodidad
+  }
+
   // --- 4. IMPRIMIR ETIQUETA ---
   imprimirQR() {
     if (!this.creado || !this.qrDataUrl) return;
-    
-    // Abrimos ventana para impresión
-    const w = window.open('', '_blank');
-    if (!w) {
-      alert('Por favor permite las ventanas emergentes para imprimir.');
+
+    const ventana = window.open('', '_blank');
+    if (!ventana) {
+      alert('Permite las ventanas emergentes para imprimir.');
       return;
     }
 
-    w.document.write(`
+    // HTML para la IMPRESORA (Etiqueta física)
+    ventana.document.write(`
       <html>
         <head>
           <title>Etiqueta ${this.creado.codigo}</title>
           <style>
-            body { font-family: 'Courier New', monospace; padding: 20px; text-align: center; }
-            .box { 
-              border: 3px solid #000; 
-              padding: 15px; 
-              max-width: 350px; 
-              margin: 0 auto; 
-              border-radius: 10px;
-            }
-            img { width: 180px; height: 180px; }
-            .title { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
-            .code { font-size: 28px; font-weight: 900; margin: 5px 0; letter-spacing: 2px; }
-            .info { font-size: 14px; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 10px;}
-            .items { text-align: left; font-size: 12px; }
-            .footer { font-size: 10px; margin-top: 20px; color: #666; }
+            body { font-family: monospace; width: 300px; margin: 0 auto; text-align: center; padding: 10px; }
+            .box { border: 2px solid black; padding: 10px; border-radius: 8px; }
+            h1 { font-size: 22px; margin: 5px 0; }
+            .qr-img { width: 180px; height: 180px; }
+            .code { font-size: 18px; font-weight: bold; margin: 10px 0; border: 1px solid #ccc; padding: 5px; }
+            .details { text-align: left; font-size: 12px; border-top: 1px dashed black; margin-top: 10px; padding-top: 5px; }
+            .item-row { display: flex; justify-content: space-between; }
           </style>
         </head>
         <body>
           <div class="box">
-            <div class="title">${this.pymeData?.nombrePyme || 'BODEGA MULTITENANT'}</div>
+            <h1>ORDEN DE RETIRO</h1>
+            <p><strong>${this.pymeData?.nombrePyme || 'Pyme'}</strong></p>
             
-            <img src="${this.qrDataUrl}" />
+            <img src="${this.qrDataUrl}" class="qr-img"/>
             
             <div class="code">${this.creado.codigo}</div>
             
-            <div class="info">
-              <strong>DESTINO:</strong> BOD. CENTRAL<br>
-              <strong>ORIGEN:</strong> ${this.creado.comuna}<br>
-              <small>${this.creado.direccion}</small>
-            </div>
-
-            <div class="items">
-              <strong>CONTENIDO (${this.itemsRetiro.length} Items):</strong><br>
-              ${this.itemsRetiro.map(i => `• [${i.cantidad}] ${i.nombre}`).join('<br>')}
+            <div class="details">
+              <strong>DETALLE (${this.itemsRetiro.length} ítems):</strong><br>
+              ${this.itemsRetiro.map(i => 
+                `<div class="item-row"><span>• ${i.nombre}</span> <span>x${i.cantidad}</span></div>`
+              ).join('')}
             </div>
             
-            <div class="footer">
-              Generado: ${new Date().toLocaleString()}
+            <div style="margin-top: 15px; font-size: 10px;">
+              ${new Date().toLocaleString()} <br>
+              ${this.creado.comuna}
             </div>
           </div>
           <script>
-            // Imprime automáticamente y cierra al terminar
-            window.onload = function() {
-              window.print();
-              window.onafterprint = function() { window.close(); }
-            }
+            window.onload = function() { window.print(); }
           </script>
         </body>
       </html>
     `);
-    w.document.close();
+    ventana.document.close();
   }
 
   volver() {

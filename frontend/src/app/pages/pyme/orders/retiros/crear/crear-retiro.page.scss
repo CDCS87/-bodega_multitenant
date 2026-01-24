@@ -53,4 +53,54 @@
   gap: 10px;
 }
 
+.card-exito {
+  border-top: 5px solid var(--ion-color-success);
+}
 
+.codigo-grande {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #333;
+  margin-top: 10px;
+}
+
+.qr-container {
+  background: white;
+  padding: 10px;
+  display: inline-block;
+  border-radius: 8px;
+  margin: 15px 0;
+  
+  img {
+    width: 220px;
+    height: 220px;
+    display: block; // Quita espacio extra abajo
+  }
+}
+
+.detalle-lista {
+  text-align: left;
+  background: #f4f5f8;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 20px;
+  
+  h6 {
+    margin: 0 0 10px 10px;
+    font-weight: bold;
+    color: #666;
+  }
+}
+
+.item-compacto {
+  --min-height: 40px;
+  --background: transparent;
+  font-size: 14px;
+}
+
+.botones-accion {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

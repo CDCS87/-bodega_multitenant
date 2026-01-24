@@ -8,19 +8,35 @@ import { Observable } from 'rxjs';
 })
 export class RetiroService {
   
-  private apiUrl = environment.apiUrl; 
+  private apiUrl = environment.apiUrl; // http://localhost:3000/api
 
   constructor(private http: HttpClient) { }
 
-  // 1. CREAR RETIRO
-  // Corrección: Aquí nos aseguramos de poner '/retiros' solo una vez
+  // 1. CREAR RETIRO (PYME)
   crearRetiro(data: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/api/retiros/crear`, data);
+    const baseUrl = this.apiUrl.includes('/api') ? this.apiUrl : `${this.apiUrl}/api`;
+  return this.http.post<any>(`${baseUrl}/retiros/crear`, data);
   }
 
-  // 2. OBTENER MIS RETIROS (Historial)
+  // 2. OBTENER MIS RETIROS - Historial (PYME)
   getMyRetiros(): Observable<any> {
     return this.http.get(`${this.apiUrl}/retiros/mis-retiros`);
+  }
+
+  // 3. BUSCAR POR CÓDIGO (PYME/BODEGA)
+  buscarPorCodigo(codigo: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/retiros/scan/${encodeURIComponent(codigo)}`);
+  }
+
+  // 4. OBTENER PENDIENTES DE BODEGA (BODEGA)
+  getPendientesBodega(): Observable<any> {
+    // Este endpoint aún no existe en tu backend, pero lo agregamos para que compile
+    return this.http.get(`${this.apiUrl}/retiros/pendientes`);
+  }
+
+  // 5. ESCANEAR/RECEPCIONAR RETIRO (BODEGA)
+  scanRetiro(codigo: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/retiros/recepcionar`, { codigo });
   }
 }
 

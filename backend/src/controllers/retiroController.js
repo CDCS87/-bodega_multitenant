@@ -1,7 +1,7 @@
 // backend/src/controllers/retiroController.js
 const Retiro = require('../models/Retiro');
 const RetiroDetalle = require('../models/RetiroDetalle');
-const Product = require('../models/Product'); // Necesario para guardar el nombre/sku histórico
+const Product = require('../models/Product');
 const sequelize = require('../config/database');
 
 // ==========================================
@@ -47,17 +47,13 @@ exports.crearRetiro = async (req, res) => {
     if (detalles && detalles.length > 0) {
       const detallesData = [];
 
-      // Recorremos los productos para preparar los datos correctos
       for (const d of detalles) {
-        // Buscamos info del producto para guardar una "foto" (snapshot) del nombre y SKU actual
         const prodInfo = await Product.findByPk(d.producto_id); 
         
         detallesData.push({
-          orden_retiro_id: nuevoRetiro.id,  // CORREGIDO: coincide con tu BD
+          orden_retiro_id: nuevoRetiro.id,
           producto_id: d.producto_id,
-          cantidad_esperada: d.cantidad,    // CORREGIDO: coincide con tu BD
-          
-          // Guardamos datos históricos (si el producto se borra mañana, esto queda)
+          cantidad_esperada: d.cantidad,
           nombre_producto: prodInfo ? prodInfo.nombre : 'Producto desconocido',
           sku_generado: prodInfo ? prodInfo.sku : 'S/N'
         });
@@ -68,8 +64,6 @@ exports.crearRetiro = async (req, res) => {
     }
 
     await t.commit();
-    
-    // Enviamos respuesta exitosa
     res.status(201).json({ message: 'Retiro creado', retiro: nuevoRetiro });
 
   } catch (error) {
@@ -77,20 +71,17 @@ exports.crearRetiro = async (req, res) => {
     
     console.log("\n🔴 ============ ERROR DETECTADO ============");
     
-    // 1. Error de SQL (El más probable)
     if (error.parent) {
       console.log("❌ Error SQL:", error.parent.message);
-      console.log("📜 Detalle:", error.parent.detail); // Aquí te dirá si falta un ID o columna
+      console.log("📜 Detalle:", error.parent.detail);
       console.log("🔢 Código Postgres:", error.parent.code);
     }
     
-    // 2. Error de Validación de Sequelize
     if (error.errors) {
       console.log("❌ Errores de validación:");
       error.errors.forEach(e => console.log(`   -> ${e.message} (Campo: ${e.path})`));
     }
 
-    // 3. Error General
     console.log("❌ Mensaje General:", error.message);
     console.log("==========================================\n");
 
@@ -109,9 +100,7 @@ exports.getMyRetiros = async (req, res) => {
     const pyme_id = req.user.pyme_id || req.user.id;
     const retiros = await Retiro.findAll({
       where: { pyme_id },
-      order: [['fecha_creacion', 'DESC']],
-      // Opcional: Si quieres ver qué productos tenía cada retiro en la lista
-      // include: [{ model: RetiroDetalle, as: 'detalles' }] 
+      order: [['fecha_creacion', 'DESC']]
     });
     res.json(retiros);
   } catch (error) {
@@ -134,11 +123,8 @@ exports.ingresarEnBodega = async (req, res) => {
 
     console.log("📦 Procesando ingreso Bodega QR:", codigo);
 
-    // Buscamos la orden
     const retiro = await Retiro.findOne({ 
-      where: { codigo },
-      // Incluimos detalles por si quieres validar stock en el futuro
-      // include: [{ model: RetiroDetalle }] 
+      where: { codigo }
     });
 
     if (!retiro) {
@@ -146,7 +132,6 @@ exports.ingresarEnBodega = async (req, res) => {
       return res.status(404).json({ message: 'Orden de retiro no encontrada' });
     }
 
-    // Validamos duplicados
     if (retiro.estado === 'INGRESADO_BODEGA' || retiro.estado === 'RECEPCIONADO') {
       await t.rollback();
       return res.status(400).json({ 
@@ -154,7 +139,6 @@ exports.ingresarEnBodega = async (req, res) => {
       });
     }
 
-    // Actualizamos estado
     retiro.estado = 'INGRESADO_BODEGA';
     retiro.fecha_ingreso_bodega = new Date();
     
@@ -178,4 +162,27 @@ exports.ingresarEnBodega = async (req, res) => {
     console.error('Error al escanear ingreso:', error);
     res.status(500).json({ message: 'Error interno al procesar ingreso' });
   }
-};
+}; // ✅ CIERRE CORRECTO de ingresarEnBodega
+
+// ==========================================
+// 4. OBTENER RETIROS PENDIENTES (Bodega)
+// ==========================================
+exports.getPendientes = async (req, res) => {
+  try {
+    const retiros = await Retiro.findAll({
+      where: { estado: ['SOLICITADO', 'EN_RUTA'] },
+      include: [
+        { 
+          model: RetiroDetalle, 
+          as: 'detalles',
+          include: [{ model: Product, as: 'producto' }] 
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+    res.json(retiros);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al obtener retiros pendientes' });
+  }
+}; // ✅ CIERRE CORRECTO de getPendientes

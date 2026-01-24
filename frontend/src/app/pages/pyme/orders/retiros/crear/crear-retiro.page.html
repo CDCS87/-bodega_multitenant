@@ -7,159 +7,174 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content [fullscreen]="true" class="ion-padding">
 
-  @if (!creado) {
-  <ion-card>
-    <ion-card-header>
-      <ion-card-subtitle>Punto de Retiro</ion-card-subtitle>
-    </ion-card-header>
-    <ion-card-content>
-      
-      <ion-item class="input-item">
-        <ion-label position="stacked">Empresa / Remitente</ion-label>
-        <ion-input [value]="pymeData?.nombrePyme || 'Cargando...'" readonly></ion-input>
-      </ion-item>
+  <div *ngIf="creado" class="animate__animated animate__fadeIn">
+    <ion-card class="ion-text-center card-exito">
+      <ion-card-header>
+        <ion-card-subtitle color="success">¡SOLICITUD EXITOSA!</ion-card-subtitle>
+        <ion-card-title class="codigo-grande">{{ creado.codigo }}</ion-card-title>
+      </ion-card-header>
 
-      <ion-item lines="none" class="ion-margin-top">
-        <ion-label>
-          <h2>Usar dirección registrada</h2>
-          <p style="font-size: 12px; color: gray;">Cargar datos de mi cuenta</p>
-        </ion-label>
-        <ion-toggle slot="end" 
-                    [(ngModel)]="usarDireccionRegistrada" 
-                    (ionChange)="toggleDireccion()">
-        </ion-toggle>
-      </ion-item>
+      <ion-card-content>
+        <div class="qr-container">
+          <img *ngIf="qrDataUrl" [src]="qrDataUrl" alt="Código QR" />
+          <ion-spinner *ngIf="!qrDataUrl" name="dots"></ion-spinner>
+        </div>
 
-      <ion-item class="input-item">
-        <ion-label position="stacked">Dirección *</ion-label>
-        <ion-input 
-          [(ngModel)]="form.direccion" 
-          [readonly]="usarDireccionRegistrada"
-          placeholder="Calle y Número">
-        </ion-input>
-      </ion-item>
-
-      <ion-item class="input-item">
-        <ion-label position="stacked">Comuna *</ion-label>
-        <ion-input 
-          [(ngModel)]="form.comuna" 
-          [readonly]="usarDireccionRegistrada"
-          placeholder="Ej: Providencia">
-        </ion-input>
-      </ion-item>
-
-      <ion-item class="input-item">
-        <ion-label position="stacked">Horario Preferido</ion-label>
-        <ion-select [(ngModel)]="form.rango" interface="popover">
-          <ion-select-option value="CORTE_1">AM (11:00 - 15:00)</ion-select-option>
-          <ion-select-option value="CORTE_2">PM (16:00 - 20:00)</ion-select-option>
-        </ion-select>
-      </ion-item>
-
-      <ion-item class="input-item">
-        <ion-label position="stacked">Notas / Referencia</ion-label>
-        <ion-input [(ngModel)]="form.referencia" placeholder="Ej: Portón verde"></ion-input>
-      </ion-item>
-
-    </ion-card-content>
-  </ion-card>
-
-  <ion-card *ngIf="!creado">
-    <ion-card-header>
-      <ion-card-title>Carga a Retirar</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <ion-grid class="ion-no-padding">
-        <ion-row>
-          <ion-col size="8">
-            <ion-item button (click)="setOpen(true)" lines="none" class="item-input">
-              <ion-label position="stacked">Producto</ion-label>
-              <ion-input readonly placeholder="Buscar..." [value]="seleccion.producto?.nombre || ''">
-                <ion-icon name="search-outline" slot="end"></ion-icon>
-              </ion-input>
+        <div class="detalle-lista">
+          <h6>📦 Contenido del Paquete:</h6>
+          <ion-list lines="none">
+            <ion-item *ngFor="let item of itemsRetiro" class="item-compacto">
+              <ion-label>
+                <h2>{{ item.nombre }}</h2>
+                <p>Cant: {{ item.cantidad }}</p>
+              </ion-label>
             </ion-item>
-          </ion-col>
-          <ion-col size="4">
-            <ion-item lines="none" class="item-input">
-              <ion-label position="stacked">Cant.</ion-label>
-              <ion-input type="number" [(ngModel)]="seleccion.cantidad" min="1"></ion-input>
-            </ion-item>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
+          </ion-list>
+        </div>
 
-      <ion-button expand="block" (click)="agregarItem()" [disabled]="!seleccion.producto" class="ion-margin-top">
-        <ion-icon name="add-circle-outline" slot="start"></ion-icon>
-        Agregar al Retiro
-      </ion-button>
-
-      <ion-list *ngIf="itemsRetiro.length > 0" class="ion-margin-top">
-        <ion-list-header><ion-label>Resumen de Carga</ion-label></ion-list-header>
-        <ion-item-sliding *ngFor="let item of itemsRetiro; let i = index">
-          <ion-item>
-            <ion-icon name="cube-outline" slot="start" color="medium"></ion-icon>
-            <ion-label>
-              <h2>{{ item.nombre }}</h2>
-              <p>SKU: {{ item.sku }}</p>
-            </ion-label>
-            <ion-badge slot="end" color="tertiary">{{ item.cantidad }} un.</ion-badge>
-          </ion-item>
-          <ion-item-options side="end">
-            <ion-item-option color="danger" (click)="eliminarItem(i)">
-              <ion-icon name="trash-outline"></ion-icon>
-            </ion-item-option>
-          </ion-item-options>
-        </ion-item-sliding>
-      </ion-list>
-    </ion-card-content>
-  </ion-card>
-
-  <div class="ion-padding" *ngIf="!creado">
-    <ion-button expand="block" size="large" (click)="submit()" [disabled]="loading || itemsRetiro.length === 0">
-      <ion-spinner *ngIf="loading"></ion-spinner>
-      <span *ngIf="!loading">Generar Solicitud</span>
-    </ion-button>
+        <div class="botones-accion">
+          <ion-button expand="block" color="primary" (click)="imprimirQR()">
+            <ion-icon slot="start" name="print-outline"></ion-icon>
+            Imprimir Solicitud
+          </ion-button>
+          <ion-button expand="block" fill="outline" color="medium" (click)="nuevaSolicitud()">
+            <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+            Nueva Solicitud
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
   </div>
 
-  <div *ngIf="creado" class="ion-text-center ion-padding">
-    <ion-icon name="checkmark-circle" color="success" style="font-size: 64px;"></ion-icon>
-    <h2>¡Solicitud Creada!</h2>
-    <p>Código: <strong>{{ creado.codigo }}</strong></p>
-
-    <ion-card class="qr-card">
+  <div *ngIf="!creado">
+    
+    <ion-card>
+      <ion-card-header>
+        <ion-card-subtitle>¿Dónde retiramos?</ion-card-subtitle>
+      </ion-card-header>
       <ion-card-content>
-        <img [src]="qrDataUrl" *ngIf="qrDataUrl" style="width: 100%; max-width: 250px;" alt="Código QR de la solicitud de retiro" />
+        <ion-item lines="none">
+          <ion-label>Usar dirección registrada</ion-label>
+          <ion-toggle [(ngModel)]="usarDireccionRegistrada" (ionChange)="toggleDireccion()"></ion-toggle>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Dirección Exacta</ion-label>
+          <ion-input [(ngModel)]="form.direccion" placeholder="Ej: Calle Falsa 123"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Comuna</ion-label>
+          <ion-input [(ngModel)]="form.comuna" placeholder="Ej: Springfield"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Referencia (Opcional)</ion-label>
+          <ion-input [(ngModel)]="form.referencia" placeholder="Ej: Portón negro, timbre malo , departamento 205"></ion-input>
+        </ion-item>
       </ion-card-content>
     </ion-card>
 
-    <ion-button expand="block" fill="outline" (click)="imprimirQR()">Imprimir Etiqueta</ion-button>
-    <ion-button expand="block" (click)="volver()">Volver</ion-button>
-  </div>
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Productos a Retirar</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        
+        <ion-button expand="block" fill="outline" (click)="setOpen(true)">
+          <ion-icon slot="start" name="search-outline"></ion-icon>
+          Buscar Producto
+        </ion-button>
 
-  <ion-modal [isOpen]="isModalOpen" (didDismiss)="setOpen(false)">
+        <ion-list *ngIf="itemsRetiro.length > 0">
+          <ion-list-header>
+            <ion-label>Lista de Empaque</ion-label>
+          </ion-list-header>
+
+          <ion-item-sliding *ngFor="let item of itemsRetiro; let i = index">
+            <ion-item>
+              <ion-icon slot="start" name="cube-outline"></ion-icon>
+              <ion-label>
+                <h2>{{ item.nombre }}</h2>
+                <p>SKU: {{ item.sku }}</p>
+              </ion-label>
+              <ion-badge slot="end" color="dark">x{{ item.cantidad }}</ion-badge>
+            </ion-item>
+            <ion-item-options side="end">
+              <ion-item-option color="danger" (click)="eliminarItem(i)">
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              </ion-item-option>
+            </ion-item-options>
+          </ion-item-sliding>
+        </ion-list>
+
+        <p *ngIf="itemsRetiro.length === 0" class="ion-text-center ion-padding text-muted">
+          No hay productos agregados aún.
+        </p>
+
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="stacked">Horario Preferido</ion-label>
+          <ion-select [(ngModel)]="form.rango" interface="popover">
+            <ion-select-option value="CORTE_1">Mañana (09:00 - 13:00)</ion-select-option>
+            <ion-select-option value="CORTE_2">Tarde (14:00 - 18:00)</ion-select-option>
+          </ion-select>
+        </ion-item>
+        
+        <ion-item>
+          <ion-label position="stacked">Observaciones Generales</ion-label>
+          <ion-input [(ngModel)]="form.observaciones"></ion-input>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <div class="ion-padding">
+      <ion-button expand="block" size="large" (click)="submit()" [disabled]="loading">
+        <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
+        <span *ngIf="!loading">Crear Solicitud</span>
+      </ion-button>
+    </div>
+
+  </div>
+<ion-modal [isOpen]="isModalOpen" (didDismiss)="setOpen(false)">
     <ng-template>
       <ion-header>
         <ion-toolbar>
           <ion-title>Buscar Producto</ion-title>
-          <ion-buttons slot="end"><ion-button (click)="setOpen(false)">Cerrar</ion-button></ion-buttons>
+          <ion-buttons slot="end">
+            <ion-button (click)="setOpen(false)">Cerrar</ion-button>
+          </ion-buttons>
         </ion-toolbar>
         <ion-toolbar>
-          <ion-searchbar placeholder="Nombre o SKU..." (ionInput)="buscarProducto($event)" [debounce]="250"></ion-searchbar>
+          <ion-searchbar placeholder="Nombre, SKU o Código de barras..." (ionInput)="buscarProducto($event)"></ion-searchbar>
         </ion-toolbar>
       </ion-header>
+
       <ion-content>
         <ion-list>
           <ion-item *ngFor="let p of productosFiltrados" button (click)="seleccionarProducto(p)">
-            <ion-label><h2>{{ p.nombre }}</h2><p>SKU: {{ p.sku }} | Disp: {{ p.cantidad_disponible }}</p></ion-label>
-            <ion-icon name="add-circle-outline" slot="end" color="primary"></ion-icon>
+            <ion-label>
+              <h2>{{ p.nombre }}</h2>
+              <p>SKU: {{ p.sku }} | Stock: {{ p.stock_actual }}</p>
+            </ion-label>
+            <ion-icon slot="end" name="add-circle-outline" color="primary"></ion-icon>
           </ion-item>
         </ion-list>
+        
+        <div *ngIf="productosFiltrados.length === 0" class="ion-text-center ion-padding">
+          <p>Escribe para buscar productos...</p>
+        </div>
       </ion-content>
     </ng-template>
   </ion-modal>
-  }
+
+  </ion-content>
 
 
 

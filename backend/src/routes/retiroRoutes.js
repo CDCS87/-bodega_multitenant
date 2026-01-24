@@ -22,6 +22,8 @@ router.get('/mis-retiros', retiroController.getMyRetiros);
 // POST /api/retiros/ingreso-bodega -> Escaneo del QR
 router.post('/ingreso-bodega', retiroController.ingresarEnBodega);
 
+router.get('/pendientes', authMiddleware, retiroController.getPendientes);
+
 module.exports = router;
 
 
