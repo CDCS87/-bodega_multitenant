@@ -167,22 +167,26 @@ export class CrearRetiroPage implements OnInit {
 
   // 2. Nueva función directa (Reemplaza a seleccionarProducto anterior)
   async seleccionarProducto(producto: any) {
-    // 1. Cerramos el buscador inmediatamente
+    // 1. Cerramos el buscador
     this.setOpen(false);
 
-    // 2. Creamos la alerta
+    // 2. Definimos qué mostrar: Prioridad Barra -> luego SKU
+    // (Asegúrate que tu campo en BD se llame 'codigo_barras', si es 'barcode' cámbialo aquí)
+    const codigoMostrar = producto.codigo_barras || producto.sku || 'Sin código';
+
+    // 3. Creamos la alerta
     const alert = await this.alertController.create({
       header: `Agregar ${producto.nombre}`,
-      subHeader: `Stock disponible: ${producto.stock_actual || 0}`,
+      subHeader: `Código: ${codigoMostrar}`, // <--- AQUÍ MOSTRAMOS EL DATO
       inputs: [
         {
           name: 'cantidad',
           type: 'number',
-          placeholder: 'Ej: 10', 
+          placeholder: 'Ej: 10',
           min: 1,
           attributes: {
             inputmode: 'numeric',
-            autofocus: true 
+            autofocus: true
           }
         }
       ],
@@ -193,7 +197,7 @@ export class CrearRetiroPage implements OnInit {
         },
         {
           text: 'Agregar',
-          handler: (data: any) => {
+          handler: (data) => {
             const cantidad = parseInt(data.cantidad, 10);
             
             if (cantidad && cantidad > 0) {

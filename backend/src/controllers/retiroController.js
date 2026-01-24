@@ -185,4 +185,4 @@ exports.getPendientes = async (req, res) => {
     console.error(error);
     res.status(500).json({ message: 'Error al obtener retiros pendientes' });
   }
-}; // ✅ CIERRE CORRECTO de getPendientes
+}; 

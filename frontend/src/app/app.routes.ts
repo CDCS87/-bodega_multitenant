@@ -62,6 +62,11 @@ export const routes: Routes = [
     import('./pages/pyme/orders/retiros/detalle/retiro-detalle.page').then(m => m.RetiroDetallePage),
   },
 
+   {
+  
+    path: 'pyme/orders/retiros/:id', 
+    loadComponent: () => import('./pages/pyme/orders/retiros/detalle-retiro-historial/detalle-retiro-historial.page').then( m => m.DetalleRetiroHistorialPage)
+  },
 
   // ======================
   // BODEGA

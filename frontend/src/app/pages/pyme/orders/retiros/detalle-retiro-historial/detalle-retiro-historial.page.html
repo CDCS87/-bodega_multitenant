@@ -1,0 +1,88 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/pyme/orders" text="Volver"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Detalle de Solicitud</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <div *ngIf="loading" class="ion-text-center ion-padding" style="margin-top: 50px;">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>Cargando detalle...</p>
+  </div>
+
+  <div *ngIf="!loading && !retiro" class="ion-text-center ion-padding" style="margin-top: 50px;">
+    <ion-icon name="alert-circle-outline" size="large" color="medium"></ion-icon>
+    <h3>No se encontró la orden</h3>
+    <p class="ion-text-muted">{{ errorMsg }}</p>
+    <ion-button fill="outline" routerLink="/pyme/orders">Regresar al historial</ion-button>
+  </div>
+
+  <div *ngIf="!loading && retiro">
+
+    <div class="ion-text-center ion-margin-bottom">
+      <h1 style="font-weight: 900; color: #333; margin-bottom: 5px;">{{ retiro.codigo }}</h1>
+      <ion-badge [color]="getEstadoColor(retiro.estado)" style="font-size: 14px; padding: 6px 12px;">
+        {{ retiro.estado }}
+      </ion-badge>
+      <p style="font-size: 12px; color: #666; margin-top: 8px;">
+        <ion-icon name="time-outline" style="vertical-align: middle;"></ion-icon>
+        {{ retiro.createdAt | date:'dd/MM/yyyy HH:mm' }}
+      </p>
+    </div>
+
+    <ion-card style="margin: 0 0 20px 0;">
+      <ion-card-content>
+        <ion-item lines="none" style="--padding-start: 0;">
+          <ion-icon name="location-outline" slot="start" color="primary"></ion-icon>
+          <ion-label>
+            <h3>Dirección de Retiro</h3>
+            <p class="ion-text-wrap">{{ retiro.direccion_origen }}</p>
+            <p><strong>{{ retiro.comuna }}</strong></p>
+          </ion-label>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <h3 style="font-size: 16px; font-weight: bold; margin-left: 5px; margin-bottom: 10px;">
+      Productos Solicitados
+    </h3>
+
+    <ion-card style="margin: 0;">
+      <ion-list lines="full">
+        <ion-item *ngFor="let item of retiro.detalles">
+          <ion-label class="ion-text-wrap">
+            <h2 style="font-weight: 700;">
+              {{ item.producto?.nombre || item.producto_nombre || 'Producto #' + item.producto_id }}
+            </h2>
+            <p>SKU: {{ item.producto?.sku || item.sku || '---' }}</p>
+          </ion-label>
+          
+          <ion-badge slot="end" color="dark" style="font-size: 14px;">
+            x{{ item.cantidad }}
+          </ion-badge>
+        </ion-item>
+
+        <ion-item *ngIf="!retiro.detalles || retiro.detalles.length === 0">
+          <ion-label color="medium">Sin detalles de productos.</ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-card>
+
+    <div *ngIf="retiro.observaciones_bodega" style="margin-top: 20px;">
+      <ion-card style="--background: #fff5f5; border: 1px solid #ffcccc;">
+        <ion-card-content>
+          <h3 style="color: var(--ion-color-danger); font-weight: bold; font-size: 14px;">
+            <ion-icon name="alert-circle-outline"></ion-icon> Reporte de Bodega
+          </h3>
+          <p style="color: #333;">{{ retiro.observaciones_bodega }}</p>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+  </div>
+
+</ion-content>

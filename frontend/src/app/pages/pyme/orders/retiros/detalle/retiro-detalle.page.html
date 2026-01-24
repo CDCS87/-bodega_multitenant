@@ -30,9 +30,11 @@
     <p><strong>Comuna:</strong> {{ orden.comuna }}</p>
     <p><strong>Fecha solicitada:</strong> {{ orden.fecha_solicitada }}</p>
 
-    <p *ngIf="orden.observaciones">
-      <strong>Observaciones:</strong> {{ orden.observaciones }}
-    </p>
+    @if (orden.observaciones) {
+      <p>
+        <strong>Observaciones:</strong> {{ orden.observaciones }}
+      </p>
+    }
 
     <h3 class="mt">Detalle</h3>
 
@@ -48,19 +50,25 @@
 
     <h3 class="mt">QR</h3>
 
-    <div *ngIf="qrDataUrl" class="qrBox">
-      <img [src]="qrDataUrl" alt="QR Retiro" class="qrImg" />
-    </div>
+    @if (qrDataUrl) {
+      <div class="qrBox">
+        <img [src]="qrDataUrl" alt="QR Retiro" class="qrImg" />
+      </div>
+    }
 
-    <ion-text *ngIf="!qrDataUrl && orden?.qr_code">
-      <p class="qr">{{ orden.qr_code }}</p>
-    </ion-text>
+    @if (!qrDataUrl && orden?.qr_code) {
+      <ion-text>
+        <p class="qr">{{ orden.qr_code }}</p>
+      </ion-text>
+    }
 
-    <div class="row" *ngIf="orden?.qr_code">
+    @if (orden?.qr_code) {
+      <div class="row">
       <ion-button expand="block" fill="outline" (click)="copyPayload()" [disabled]="copying">
         {{ copying ? 'Copiando...' : 'Copiar payload' }}
       </ion-button>
-    </div>
+      </div>
+    }
 
     </div>
   }

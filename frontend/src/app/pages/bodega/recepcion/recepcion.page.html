@@ -1,39 +1,108 @@
 <ion-header>
-  <ion-toolbar>
-    <ion-title>Recepción (Bodega)</ion-title>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/admin/dashboard"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Recepción en Bodega</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <ion-item>
-    <ion-label position="stacked">Escanear/Pegar QR o Código</ion-label>
-    <ion-input [(ngModel)]="codigo" placeholder="retiro:PYME-001-RET-YYYYMMDD-0001"></ion-input>
-  </ion-item>
 
-  <ion-button expand="block" (click)="buscar()" [disabled]="loading">
-    <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
-    <span *ngIf="!loading">Buscar orden</span>
-  </ion-button>
+  <div *ngIf="!pedidoActual" class="ion-text-center animate__animated animate__fadeIn" style="margin-top: 50px;">
+    
+    <ion-icon name="qr-code-outline" style="font-size: 100px; color: #ccc;"></ion-icon>
+    <h1>Escanear Solicitud</h1>
+    <p>Usa el lector o ingresa el código manual</p>
 
-  <ion-text color="danger" *ngIf="errorMsg">
-    <p>{{ errorMsg }}</p>
-  </ion-text>
+    <ion-card>
+      <ion-card-content>
+        <ion-item lines="none">
+          <ion-input 
+            #inputScanner
+            [(ngModel)]="codigoBusqueda" 
+            placeholder="RET-2026..." 
+            (keyup.enter)="buscarPedido()"
+            autofocus="true">
+          </ion-input>
+          <ion-button slot="end" (click)="buscarPedido()">
+            <ion-icon name="search"></ion-icon>
+          </ion-button>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+  </div>
 
-  <h3 class="pending-title">Pendientes de ingreso</h3>
 
-  <ion-spinner *ngIf="loadingList" name="crescent"></ion-spinner>
+  <div *ngIf="pedidoActual" class="animate__animated animate__slideInUp">
+    
+    <ion-card color="light">
+      <ion-card-header>
+        <ion-card-subtitle>Solicitud #{{ pedidoActual.codigo }}</ion-card-subtitle>
+        <ion-card-title>{{ pedidoActual.pyme?.nombre_fantasia || 'Pyme ID ' + pedidoActual.pyme_id }}</ion-card-title>
+      </ion-card-header>
+    </ion-card>
 
-  <ion-list *ngIf="!loadingList && pendientes.length">
-    <ion-item button *ngFor="let o of pendientes" (click)="openDetalle(o.id)">
-      <ion-label>
-        <h2>{{ o.codigo }}</h2>
-        <p>{{ o.comuna }} • {{ o.direccion_retiro }}</p>
-        <p>Estado: {{ o.estado }}</p>
-      </ion-label>
-    </ion-item>
-  </ion-list>
+    <div class="ion-padding-start ion-margin-top">
+      <h3>📋 Verificar Contenido</h3>
+      <p style="font-size: 12px; color: #666;">Confirma las cantidades físicas recibidas.</p>
+    </div>
 
-  <ion-text *ngIf="!loadingList && !pendientes.length">
-    <p>No hay retiros pendientes (RETIRADO).</p>
-  </ion-text>
+    <ion-list>
+      <ion-item *ngFor="let item of itemsChecklist">
+        
+        <ion-label class="ion-text-wrap">
+          <h2>{{ item.nombre }}</h2>
+          <p>SKU: {{ item.sku }}</p>
+          <p style="color: var(--ion-color-primary);">Esperado: <strong>{{ item.cantidad_esperada }}</strong></p>
+        </ion-label>
+
+        <div slot="end" style="display: flex; align-items: center; gap: 10px;">
+          
+          <ion-button size="small" color="danger" fill="outline" (click)="ajustarCantidad(item, -1)">
+            <ion-icon name="remove"></ion-icon>
+          </ion-button>
+
+          <div style="font-size: 20px; font-weight: bold; width: 30px; text-align: center;"
+               [style.color]="item.cantidad_recibida !== item.cantidad_esperada ? 'red' : 'black'">
+            {{ item.cantidad_recibida }}
+          </div>
+
+          <ion-button size="small" color="success" fill="outline" (click)="ajustarCantidad(item, 1)">
+            <ion-icon name="add"></ion-icon>
+          </ion-button>
+
+        </div>
+      </ion-item>
+    </ion-list>
+
+    <ion-card>
+      <ion-card-content>
+        <ion-label position="stacked">Observaciones (Roturas, faltantes, etc)</ion-label>
+        <ion-textarea 
+          [(ngModel)]="observaciones" 
+          placeholder="Todo llegó conforme..." 
+          rows="3">
+        </ion-textarea>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-grid>
+      <ion-row>
+        <ion-col>
+          <ion-button expand="block" color="medium" fill="outline" (click)="limpiarPantalla()">
+            Cancelar
+          </ion-button>
+        </ion-col>
+        <ion-col>
+          <ion-button expand="block" color="primary" (click)="confirmarRecepcion()" [disabled]="loading">
+            <ion-icon slot="start" name="checkmark-done-circle"></ion-icon>
+            Confirmar Ingreso
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+  </div>
+
 </ion-content>

@@ -9,7 +9,6 @@
 
 <ion-content class="ion-padding">
 
-  <!-- CARD: Crear orden -->
   <ion-card>
     <ion-card-header>
       <ion-card-title>Crear Orden</ion-card-title>
@@ -34,21 +33,18 @@
     </ion-card-content>
   </ion-card>
 
-  <!-- CARD: Filtros -->
   <ion-card>
     <ion-card-header>
       <ion-card-title>Filtros</ion-card-title>
     </ion-card-header>
 
     <ion-card-content>
-
-      <!-- Tipo + Estado (lado a lado) -->
       <ion-grid>
         <ion-row>
           <ion-col size="6">
-            <ion-item>
+            <ion-item lines="none" class="filter-item">
               <ion-label position="stacked">Tipo</ion-label>
-              <ion-select [(ngModel)]="filters.tipo" (ionChange)="applyFilters()">
+              <ion-select [(ngModel)]="filters.tipo" (ionChange)="applyFilters()" interface="popover">
                 <ion-select-option value="ALL">Todas</ion-select-option>
                 <ion-select-option value="RETIRO">Retiro</ion-select-option>
                 <ion-select-option value="DESPACHO">Despacho</ion-select-option>
@@ -57,65 +53,107 @@
           </ion-col>
 
           <ion-col size="6">
-            <ion-item>
+            <ion-item lines="none" class="filter-item">
               <ion-label position="stacked">Estado</ion-label>
-              <ion-select [(ngModel)]="filters.estado" (ionChange)="applyFilters()">
+              <ion-select [(ngModel)]="filters.estado" (ionChange)="applyFilters()" interface="popover">
                 <ion-select-option value="ALL">Todos</ion-select-option>
                 <ion-select-option value="SOLICITADO">Solicitado</ion-select-option>
                 <ion-select-option value="ASIGNADO">Asignado</ion-select-option>
+                <ion-select-option value="RETIRADO">Recolectado</ion-select-option>
+                <ion-select-option value="EN_BODEGA">En Bodega</ion-select-option>
+                <ion-select-option value="COMPLETADO">Completado</ion-select-option>
                 <ion-select-option value="EN_PREPARACION">En preparación</ion-select-option>
                 <ion-select-option value="PREPARADO">Preparado</ion-select-option>
                 <ion-select-option value="EN_TRANSITO">En tránsito</ion-select-option>
                 <ion-select-option value="ENTREGADO">Entregado</ion-select-option>
-                <ion-select-option value="CANCELADO">Cancelado</ion-select-option>
               </ion-select>
             </ion-item>
           </ion-col>
         </ion-row>
       </ion-grid>
 
-      <!-- Buscar -->
-      <ion-item>
-        <ion-label position="stacked">Buscar</ion-label>
+      <ion-item lines="inset">
+        <ion-icon name="search-outline" slot="start"></ion-icon>
         <ion-input
-          placeholder="Código..."
+          placeholder="Buscar por código..."
           [(ngModel)]="filters.q"
           (ionInput)="onSearch()"
         ></ion-input>
       </ion-item>
 
-      <ion-button expand="block" fill="outline" (click)="resetFilters()">
+      <ion-button expand="block" fill="clear" size="small" (click)="resetFilters()">
         LIMPIAR FILTROS
       </ion-button>
     </ion-card-content>
   </ion-card>
 
-  <!-- CARD: Historial -->
   <ion-card>
     <ion-card-header>
       <ion-card-title>Historial de Órdenes</ion-card-title>
     </ion-card-header>
 
-    <ion-card-content>
-      <ion-text *ngIf="loading">
-        <p>Cargando...</p>
-      </ion-text>
+    <ion-card-content class="padding-0">
+      
+      @if (loading) {
+        <div class="ion-text-center ion-padding">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p>Cargando información...</p>
+        </div>
+      }
 
-      <ion-text *ngIf="!loading && filtered.length === 0">
-        <p>No hay órdenes para mostrar.</p>
-      </ion-text>
+      <div *ngIf="!loading && filtered.length === 0" class="ion-text-center ion-padding">
+        <ion-icon name="folder-open-outline" size="large" color="medium"></ion-icon>
+        <p class="ion-text-muted">No se encontraron órdenes.</p>
+      </div>
 
       <ion-list *ngIf="!loading && filtered.length > 0">
-        <ion-item button *ngFor="let o of filtered" (click)="openOrder(o)">
-          <ion-label>
-            <h2>{{ o.codigo }}</h2>
-            <p>{{ o.tipo }} • {{ labelEstado(o.estado) }}</p>
-          </ion-label>
+        
+        <ion-item-group *ngFor="let o of filtered">
+          
+          <ion-item button detail="true" (click)="openOrder(o)">
+            
+            <ion-icon 
+              slot="start" 
+              [name]="o.tipo === 'RETIRO' ? 'cube-outline' : 'car-outline'" 
+              size="large"
+              color="primary">
+            </ion-icon>
 
-          <ion-badge slot="end" [color]="badgeColor(o.estado)">
-            {{ labelEstado(o.estado) }}
-          </ion-badge>
-        </ion-item>
+            <ion-label>
+              <h3>
+                <span style="font-weight: 800;">{{ o.codigo }}</span>
+                <span style="font-size: 0.8em; color: #666; margin-left: 5px;">• {{ o.tipo }}</span>
+              </h3>
+              
+              <p>{{ o.createdAt | date:'dd/MM HH:mm' }} • {{ o.detalles?.length || 0 }} items</p>
+              
+              <p style="font-size: 11px; color: #888;">
+                <ion-icon name="location-outline" style="vertical-align: middle; font-size: 12px;"></ion-icon>
+                {{ o.comuna || 'Dirección registrada' }}
+              </p>
+            </ion-label>
+
+            <ion-badge slot="end" [color]="getEstadoColor(o.estado)" style="padding: 6px;">
+              {{ getEstadoTexto(o.estado) }}
+            </ion-badge>
+
+          </ion-item>
+
+          <ion-item 
+            *ngIf="o.observaciones_bodega || o.observaciones_incidencia" 
+            lines="full" 
+            style="--background: #fff5f5; --min-height: 30px;">
+            
+            <ion-icon name="alert-circle-outline" slot="start" color="danger" size="small"></ion-icon>
+            
+            <ion-label class="ion-text-wrap" color="danger" style="font-size: 12px;">
+              <strong>Nota:</strong> {{ o.observaciones_bodega || o.observaciones_incidencia }}
+            </ion-label>
+            
+          </ion-item>
+
+        </ion-item-group>
+
       </ion-list>
     </ion-card-content>
   </ion-card>
