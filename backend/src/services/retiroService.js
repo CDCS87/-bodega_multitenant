@@ -1,56 +1,46 @@
-const OrdenRetiro = require('../models/OrdenRetiro');
-const OrdenRetiroDetalle = require('../models/OrdenRetiroDetalle');
-const Zona = require('../models/Zona');
-const Transportista = require('../models/Transportista');
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from 'src/environments/environment';
+import { Observable } from 'rxjs';
 
-async function buscarPorCodigo(codigo, scope) {
-  const retiro = await OrdenRetiro.findByCodigo(codigo, scope);
+@Injectable({
+  providedIn: 'root'
+})
+export class RetiroService {
+  
+  apiUrl = environment.apiUrl; // http://localhost:3000/api
 
-  if (!retiro) return null;
+  constructor(http) {
+    this.http = http;
+  }
 
-  const detalle = await OrdenRetiroDetalle.listByRetiroId(retiro.id);
-  return { ...retiro, detalle };
-}
+  // 1. CREAR RETIRO (PYME)
+  crearRetiro(data) {
+    const baseUrl = this.apiUrl.includes('/api') ? this.apiUrl : `${this.apiUrl}/api`;
+  return this.http.post<any>(`${baseUrl}/retiros/crear`, data);
+  }
 
-function generarCodigo(pymeId) {
-  const ymd = new Date().toISOString().slice(0,10).replaceAll('-','');
-  const rand = String(Math.floor(Math.random()*9999)).padStart(4,'0');
-  return `RET|${pymeId}-${ymd}-${rand}`;
-}
+  // 2. OBTENER MIS RETIROS - Historial (PYME)
+  getMyRetiros() {
+    return this.http.get(`${this.apiUrl}/retiros/mis-retiros`);
+  }
 
-async function crearRetiro({ usuario, data }) {
-  const zona = await Zona.findByComuna(data.comuna);
+  // 3. BUSCAR POR CÓDIGO (PYME/BODEGA)
+  buscarPorCodigo(codigo) {
+    return this.http.get(`${this.apiUrl}/retiros/scan/${encodeURIComponent(codigo)}`);
+  }
 
-  // turno según rango
-  const turno = data.rango === 'CORTE_1' ? 'MATUTINO' : 'VESPERTINO';
-  const transportista = zona
-    ? await Transportista.findDisponible(zona.id, turno)
-    : null;
+  // 4. OBTENER PENDIENTES DE BODEGA (BODEGA)
+  getPendientesBodega() {
+    // Este endpoint aún no existe en tu backend, pero lo agregamos para que compile
+    return this.http.get(`${this.apiUrl}/retiros/pendientes`);
+  }
 
-  const estado = transportista ? 'ASIGNADO' : 'SOLICITADO';
-
-  // 1) insert cabecera
-  const retiro = await OrdenRetiro.insert({
-    codigo: generarCodigo(usuario.pyme_id),
-    pyme_id: usuario.pyme_id,
-    direccion_retiro: data.direccion_retiro,
-    comuna: data.comuna,
-    fecha_solicitada: data.fecha_solicitada, // date
-    transportista_id: transportista?.id ?? null,
-    zona_id: zona?.id ?? null,
-    estado,
-    observaciones: data.observaciones ?? null,
-    creado_por: usuario.id
-  });
-
-  // 2) insert detalle
-  const detalle = await OrdenRetiroDetalle.insertMany(
-    retiro.id,
-    Array.isArray(data.items) ? data.items : []
-  );
-
-  return { retiro, detalle, transportista };
+  // 5. ESCANEAR/RECEPCIONAR RETIRO (BODEGA)
+  scanRetiro(codigo) {
+    return this.http.post(`${this.apiUrl}/retiros/recepcionar`, { codigo });
+  }
 }
 
 
-module.exports = { crearRetiro, buscarPorCodigo };
+
