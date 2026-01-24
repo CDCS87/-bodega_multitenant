@@ -1,3 +1,4 @@
+// backend/src/controllers/authController.js
 const { RefreshToken, User } = require('../models');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
@@ -8,15 +9,14 @@ const { Op } = require('sequelize');
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret';
 const JWT_ACCESS_EXPIRES = '15m'; 
 const JWT_REFRESH_EXPIRES = '7d';  
-const SALT_ROUNDS = 12; // ✅ 
+const SALT_ROUNDS = 12;
 
 // 📊 Rate limiting en memoria (para producción usar Redis)
 const loginAttempts = new Map(); // { email: { count, lockedUntil } }
 const MAX_ATTEMPTS = 5;
 const LOCK_TIME = 30 * 60 * 1000; 
 
-
- //REGISTRO DE USUARIOS
+// REGISTRO DE USUARIOS
 exports.register = async (req, res) => {
   try {
     const { email, password, nombre_completo, telefono, rol, pyme_id } = req.body;
@@ -214,7 +214,8 @@ exports.refreshToken = async (req, res) => {
         revoked: false,
         expires_at: { [Op.gt]: new Date() }
       },
-      include: [{ model: User }]
+      // 👇 CORRECCIÓN CLAVE: Agregamos "as: 'User'" para coincidir con el modelo
+      include: [{ model: User, as: 'User' }] 
     });
 
     // 2) Verificar el refresh token
@@ -234,7 +235,15 @@ exports.refreshToken = async (req, res) => {
       });
     }
 
-    const user = validToken.User;
+    // Obtener el usuario desde la asociación (ahora usando el alias correcto)
+    const user = validToken.User; 
+
+    if (!user) {
+        return res.status(401).json({
+            success: false,
+            message: 'Usuario asociado no encontrado'
+        });
+    }
 
     // 3) ✅ Rotación: Revocar el refresh token usado
     await validToken.update({ revoked: true });

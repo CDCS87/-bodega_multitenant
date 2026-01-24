@@ -1,45 +1,28 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
+import { Observable } from 'rxjs';
 
-export type RangoRetiro = 'CORTE_1' | 'CORTE_2';
-
-export interface CrearRetiroPayload {
-  comuna: string;
-  direccion: string;
-  rango: RangoRetiro;
-  items?: Array<{ producto_id: string; cantidad: number }>;
-  observaciones?: string | null;
-  fecha_solicitada?: string; // YYYY-MM-DD
-}
-
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class RetiroService {
-  private readonly API_URL = `${environment.apiUrl}/api/retiros`;
+  
+  private apiUrl = environment.apiUrl; 
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
-  // ✅ PYME: crear retiro
-  crearRetiro(payload: CrearRetiroPayload) {
-    return this.http.post<any>(this.API_URL, payload);
+  // 1. CREAR RETIRO
+  // Corrección: Aquí nos aseguramos de poner '/retiros' solo una vez
+  crearRetiro(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/api/retiros/crear`, data);
   }
 
-  // ✅ (PYME/BODEGA): buscar por código
-  buscarPorCodigo(codigo: string) {
-    return this.http.get<any>(`${this.API_URL}/codigo/${encodeURIComponent(codigo)}`);
-  }
-
-  // ✅ BODEGA: listar retiros pendientes (para recepción)
-  getPendientesBodega() {
-    return this.http.get<any>(`${this.API_URL}/bodega/pendientes`);
-  }
-
-  // ✅ BODEGA: escanear/ingresar retiro por código (para recepción)
-  scanRetiro(codigo: string) {
-    return this.http.post<any>(`${this.API_URL}/bodega/scan`, { codigo });
+  // 2. OBTENER MIS RETIROS (Historial)
+  getMyRetiros(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/retiros/mis-retiros`);
   }
 }
-
 
 
 
