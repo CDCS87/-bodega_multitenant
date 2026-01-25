@@ -1,6 +1,11 @@
 <ion-header>
   <ion-toolbar color="primary">
     <ion-title>Gestión de Usuarios</ion-title>
+    <<ion-buttons slot="end">
+      <ion-button (click)="salir()">
+        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
   <ion-toolbar>
     <ion-searchbar 

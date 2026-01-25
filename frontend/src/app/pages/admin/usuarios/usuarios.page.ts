@@ -1,16 +1,15 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { 
   IonHeader, IonToolbar, IonTitle, IonContent, 
-  IonList, IonItem, IonLabel, IonChip, 
-  IonItemSliding, IonItemOptions, IonItemOption, 
-  IonIcon, IonButtons, IonButton, IonSearchbar, IonFab, IonFabButton, IonNote 
+  IonList, IonItem, IonLabel, IonChip,  
+  IonIcon, IonButtons, IonButton, IonSearchbar, IonFab, IonFabButton
 } from '@ionic/angular/standalone'; 
 import { UserService } from '../../../services/user.service';
 import { AlertController, ToastController, LoadingController, NavController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { add, searchOutline, trash, create, personOutline, searchCircleOutline} from 'ionicons/icons';
-
+import { add, searchOutline, trash, create, personOutline, searchCircleOutline,logOutOutline} from 'ionicons/icons';
+import { AuthService } from 'src/app/services/auth.service'
 @Component({
   selector: 'app-usuarios',
   standalone: true, 
@@ -34,10 +33,11 @@ export class UsuariosPage {
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
     private loadingCtrl: LoadingController,
-    private navCtrl: NavController
+    private navCtrl: NavController,
+    private authService: AuthService
   ) {
     // Registramos todos los iconos necesarios para la vista
-    addIcons({ searchOutline, add, trash, create, personOutline, searchCircleOutline });
+    addIcons({ searchOutline, add, trash, create, personOutline, searchCircleOutline, logOutOutline });
   }
 
   ionViewWillEnter() {
@@ -90,7 +90,7 @@ export class UsuariosPage {
     this.navCtrl.navigateForward('/admin/crear-usuario');
   }
 
-  // ✅ FUNCIONALIDAD DE ELIMINACIÓN
+  // FUNCIONALIDAD DE ELIMINACIÓN
   async confirmarEliminar(id: number) {
     const alert = await this.alertCtrl.create({
       header: 'Confirmar eliminación',
@@ -131,5 +131,9 @@ export class UsuariosPage {
       position: 'bottom'
     });
     toast.present();
+  }
+  
+  salir() {
+    this.authService.logout(); 
   }
 }
