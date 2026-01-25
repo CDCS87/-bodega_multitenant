@@ -1,5 +1,5 @@
 // frontend/src/services/auth.service.ts
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core'; // Añadido NgZone para optimizar timers
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, BehaviorSubject, throwError } from 'rxjs';
@@ -34,26 +34,31 @@ export class AuthService {
   private readonly REFRESH_TOKEN_KEY = 'refreshToken';
   private readonly USER_KEY = 'user';
 
-  //  Observable para estado de autenticación
+  // Observable para estado de autenticación
   private authState = new BehaviorSubject<boolean>(this.isLoggedIn());
   public authState$ = this.authState.asObservable();
 
-  //  Timer para renovar token automáticamente
+  // Timer para renovar token automáticamente
   private refreshTimer: any;
+
+  // ✅ NUEVO: Timer para control de inactividad humana
+  private inactivityTimer: any;
+  private readonly INACTIVITY_TIME = 10 * 60 * 1000; // 10 Minutos exactos
 
   constructor(
     private http: HttpClient, 
-    private router: Router
+    private router: Router,
+    private ngZone: NgZone // Inyectado para manejar eventos fuera de la zona de Angular
   ) {
     // Iniciar renovación automática si hay sesión activa
     if (this.isLoggedIn()) {
       this.scheduleTokenRefresh();
+      this.startInactivityMonitoring(); // ✅ Inicia monitoreo al refrescar la app
     }
   }
 
   /**
-   *  LOGIN
-   * Autenticación con access token (15 min) y refresh token (7 días)
+   * LOGIN
    */
   login(email: string, password: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.API_URL}/login`, { 
@@ -62,7 +67,6 @@ export class AuthService {
     }).pipe(
       tap((res) => {
         if (res.success) {
-          // Guardar tokens y usuario
           localStorage.setItem(this.ACCESS_TOKEN_KEY, res.accessToken);
           localStorage.setItem(this.REFRESH_TOKEN_KEY, res.refreshToken);
           localStorage.setItem(this.USER_KEY, JSON.stringify(res.user));
@@ -71,6 +75,9 @@ export class AuthService {
 
           // ✅ Programar renovación automática del token
           this.scheduleTokenRefresh();
+          
+          // ✅ NUEVO: Iniciar monitoreo de inactividad tras login exitoso
+          this.startInactivityMonitoring();
 
           console.log('✅ Login exitoso');
         }
@@ -83,8 +90,57 @@ export class AuthService {
   }
 
   /**
-   *  RENOVAR ACCESS TOKEN
-   * RF1: Refresh tokens con rotación automática
+   * ✅ NUEVO: INICIAR MONITOREO DE INACTIVIDAD SELECTIVO
+   * Aplica para ADMIN, PYME y BODEGA. TRANSPORTISTA queda fuera.
+   */
+  private startInactivityMonitoring(): void {
+    const role = this.getUserRole();
+
+    // 🚚 REGLA: Si es transportista, NUNCA se cierra la aplicación por inactividad
+    if (role === 'TRANSPORTISTA') {
+      console.log('🚚 Modo Transporte: Inactividad desactivada para seguridad en ruta.');
+      this.stopInactivityTimer();
+      return;
+    }
+
+    console.log(`⏱️ Vigilancia activa para ${role}. Tiempo límite: 10 minutos.`);
+    
+    // Usamos NgZone para que los movimientos del mouse no ralenticen la app
+    this.ngZone.runOutsideAngular(() => {
+      const events = ['mousemove', 'click', 'keypress', 'touchstart', 'scroll'];
+      events.forEach(event => {
+        window.addEventListener(event, () => this.resetInactivityTimer(), { passive: true });
+      });
+      this.resetInactivityTimer();
+    });
+  }
+
+  /**
+   * ✅ NUEVO: RESETEAR EL RELOJ DE INACTIVIDAD
+   */
+  private resetInactivityTimer(): void {
+    if (this.inactivityTimer) {
+      clearTimeout(this.inactivityTimer);
+    }
+    this.inactivityTimer = setTimeout(() => {
+      this.ngZone.run(() => {
+        console.log('🚪 Sesión finalizada por inactividad prolongada (10 min).');
+        this.logout();
+      });
+    }, this.INACTIVITY_TIME);
+  }
+
+  /**
+   * ✅ NUEVO: DETENER EL RELOJ
+   */
+  private stopInactivityTimer(): void {
+    if (this.inactivityTimer) {
+      clearTimeout(this.inactivityTimer);
+    }
+  }
+
+  /**
+   * RENOVAR ACCESS TOKEN
    */
   refreshAccessToken(): Observable<RefreshResponse> {
     const refreshToken = this.getRefreshToken();
@@ -100,19 +156,15 @@ export class AuthService {
     }).pipe(
       tap((res) => {
         if (res.success) {
-          //  Actualizar ambos tokens (rotación)
           localStorage.setItem(this.ACCESS_TOKEN_KEY, res.accessToken);
           localStorage.setItem(this.REFRESH_TOKEN_KEY, res.refreshToken);
           
           console.log('🔄 Token renovado exitosamente');
-
-          // Reprogramar siguiente renovación
           this.scheduleTokenRefresh();
         }
       }),
       catchError((error) => {
         console.error('❌ Error al renovar token:', error);
-        // Si falla la renovación, cerrar sesión
         this.logout();
         return throwError(() => error);
       })
@@ -120,18 +172,14 @@ export class AuthService {
   }
 
   /**
-   *  PROGRAMAR RENOVACIÓN AUTOMÁTICA
-   * Renueva el token 1 minuto antes de que expire
+   * PROGRAMAR RENOVACIÓN AUTOMÁTICA
    */
   private scheduleTokenRefresh(): void {
-    // Limpiar timer anterior si existe
     if (this.refreshTimer) {
       clearTimeout(this.refreshTimer);
     }
 
-    // Access token expira en 15 minutos
-    // Renovar 1 minuto antes = 14 minutos
-    const refreshTime = 14 * 60 * 1000;
+    const refreshTime = 14 * 60 * 1000; // 14 minutos
 
     this.refreshTimer = setTimeout(() => {
       console.log('Renovando token automáticamente...');
@@ -143,12 +191,11 @@ export class AuthService {
   }
 
   /**
-   *  LOGOUT
+   * LOGOUT
    */
   logout(): void {
     const refreshToken = this.getRefreshToken();
 
-    // Notificar al backend para revocar el refresh token
     if (refreshToken) {
       this.http.post(`${this.API_URL}/logout`, { refreshToken })
         .subscribe({
@@ -157,19 +204,18 @@ export class AuthService {
         });
     }
 
-    // Limpiar localStorage
     localStorage.removeItem(this.ACCESS_TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
 
-    // Limpiar timer de renovación
     if (this.refreshTimer) {
       clearTimeout(this.refreshTimer);
     }
 
-    this.authState.next(false);
+    // ✅ NUEVO: Limpiar timer de inactividad al cerrar sesión
+    this.stopInactivityTimer();
 
-    // Redirigir al login
+    this.authState.next(false);
     this.router.navigate(['/login'], { replaceUrl: true });
   }
 
@@ -204,45 +250,22 @@ export class AuthService {
   }
 
   getMyPyme(): Observable<any> {
-    // Usamos el endpoint que ya tienes en pymeRoutes.js (/me)
     return this.http.get(`${environment.apiUrl}/api/pyme/me`);
   }
 
-  /**
-   *  REGISTRO
-   */
   register(data: any): Observable<any> {
     return this.http.post(`${this.API_URL}/register`, data);
   }
 
-  /**
-   *  RECUPERACIÓN DE CONTRASEÑA
-   */
-  /*requestPasswordReset(email: string): Observable<any> {
-    return this.http.post(`${this.API_URL}/request-password-reset`, { email });
-  }
-
-  //resetPassword(token: string, newPassword: string): Observable<any> {
-    return this.http.post(`${this.API_URL}/reset-password`, { 
-      token, 
-      newPassword 
-    });
-  }
-
-  /**
-   *  MÉTODO AUXILIAR: Verificar si el token está por expirar
-   */
   isTokenExpiringSoon(): boolean {
     const token = this.getAccessToken();
     if (!token) return true;
 
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      const expiresAt = payload.exp * 1000; // Convertir a milisegundos
+      const expiresAt = payload.exp * 1000; 
       const now = Date.now();
       const timeLeft = expiresAt - now;
-
-      // Si queda menos de 2 minutos
       return timeLeft < 2 * 60 * 1000;
     } catch {
       return true;
