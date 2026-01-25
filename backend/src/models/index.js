@@ -3,6 +3,7 @@ const User = require('./User');
 const RefreshToken = require('./RefreshToken');
 const Product = require('./Product');
 const Pyme = require('./Pyme');
+const Transportista = require('./Transportista');
 
 const OrdenRetiro = require('./Retiro');
 const OrdenRetiroDetalle = require('./RetiroDetalle');
@@ -17,7 +18,7 @@ const models = {
   RefreshToken,
   Product,
   Pyme,
-
+  Transportista,
   OrdenRetiro,
   OrdenRetiroDetalle,
   OrdenRetiroEvidencia,
@@ -86,6 +87,12 @@ OrdenDespachoEvidencia.belongsTo(OrdenDespacho, {
   foreignKey: 'despacho_id', // CORREGIDO
   as: 'orden'
 });
+
+// Relación Usuario - Pyme (Fundamental para tu sistema multitenant)
+User.belongsTo(Pyme, { foreignKey: 'pyme_id', as: 'pyme' });
+Pyme.hasMany(User, { foreignKey: 'pyme_id', as: 'usuarios' });
+User.hasOne(Transportista, { foreignKey: 'usuario_id', as: 'datosTransportista' });
+Transportista.belongsTo(User, { foreignKey: 'usuario_id', as: 'usuario' });
 
 module.exports = models;
 

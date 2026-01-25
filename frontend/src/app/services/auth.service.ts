@@ -218,11 +218,11 @@ export class AuthService {
   /**
    *  RECUPERACIÓN DE CONTRASEÑA
    */
-  requestPasswordReset(email: string): Observable<any> {
+  /*requestPasswordReset(email: string): Observable<any> {
     return this.http.post(`${this.API_URL}/request-password-reset`, { email });
   }
 
-  resetPassword(token: string, newPassword: string): Observable<any> {
+  //resetPassword(token: string, newPassword: string): Observable<any> {
     return this.http.post(`${this.API_URL}/reset-password`, { 
       token, 
       newPassword 

@@ -3,7 +3,7 @@ const router = express.Router();
 const adminController = require('../controllers/adminController');
 const { authMiddleware, requireRole } = require('../middlewares/authMiddleware');
 
-// Crear usuario (solo admin)
+// --- USUARIOS ---
 router.post(
   '/usuarios',
   authMiddleware,
@@ -11,12 +11,32 @@ router.post(
   adminController.createUser
 );
 
-// Listar usuarios (solo admin)
 router.get(
   '/usuarios',
   authMiddleware,
   requireRole('ADMINISTRADOR'),
   adminController.listUsers
+);
+
+router.put(
+  '/usuarios/:id',
+  authMiddleware,
+  requireRole('ADMINISTRADOR'),
+  adminController.updateUser
+);
+
+router.delete(
+  '/usuarios/:id',
+  authMiddleware,
+  requireRole('ADMINISTRADOR'),
+  adminController.deleteUser
+);
+
+// --- ZONAS ---
+
+router.get(
+  '/zonas',  
+  adminController.listZonas
 );
 
 module.exports = router;

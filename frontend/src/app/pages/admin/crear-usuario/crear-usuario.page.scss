@@ -1,0 +1,13 @@
+ion-input, ion-select {
+  --placeholder-color: #666; // Un gris más definido
+  --placeholder-opacity: 0.8; // Más cercano a 1 para que no se vea tan transparente
+  --placeholder-font-weight: 500;
+}
+
+// Opcional: Dale un toque más profesional a los ítems del formulario
+ion-item {
+  --padding-start: 12px;
+  --border-radius: 8px;
+  margin-bottom: 10px;
+  --background: #f9f9f9; // Un fondo sutil para resaltar los campos
+}

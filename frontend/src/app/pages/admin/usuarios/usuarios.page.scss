@@ -1,0 +1,82 @@
+// usuarios.page.scss
+
+ion-content {
+  --background: #f4f5f8; // Un gris muy claro para resaltar las tarjetas
+}
+
+ion-list {
+  background: transparent;
+  padding: 8px;
+}
+
+
+ion-item {
+  --padding-start: 16px;
+  --inner-padding-end: 16px;
+  border-radius: 12px;
+}
+
+h2 {
+  font-weight: bold;
+  color: var(--ion-color-dark);
+  margin-bottom: 4px;
+}
+
+p {
+  font-size: 0.9em;
+  color: var(--ion-color-step-600);
+}
+
+// Estilo para los chips de rol
+ion-chip {
+  margin-top: 8px;
+  font-size: 0.75em;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.pyme-chip {
+  --background: var(--ion-color-tertiary-light);
+  --color: var(--ion-color-tertiary);
+}
+
+.transp-chip {
+  --background: var(--ion-color-success-light);
+  --color: var(--ion-color-success);
+}
+
+// Icono flotante de agregar
+ion-fab-button {
+  --box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.4);
+}
+
+// Mensaje cuando no hay resultados
+.empty-state {
+  text-align: center;
+  margin-top: 50px;
+  color: var(--ion-color-step-400);
+  
+  ion-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+  }
+}
+ion-fab {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  margin-right: 10px;
+
+  ion-label {
+    background: white;
+    padding: 5px 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    margin-right: 10px;
+  }
+}
+ion-buttons[slot="end"] {
+  ion-button {
+    --padding-start: 8px;
+    --padding-end: 8px;
+  }
+}

@@ -37,9 +37,18 @@ export class HomePage implements OnInit {
 
   private redirectBasedOnRole() {
     const roleRaw = this.authService.getUserRole();
-    const role = String(roleRaw || '').toUpperCase();
+    const role = String(roleRaw || '').toUpperCase().trim();
 
     console.log('[HOME] roleRaw:', roleRaw, ' roleNormalized:', role);
+    console.log('--- DEBUG REDIRECT ---');
+    console.log('Comparando:', role, 'con ADMINISTRADOR');
+    console.log('¿Son iguales?:', role === 'ADMINISTRADOR');
+
+    if (role === 'ADMINISTRADOR') {
+    console.log('Entrando al caso ADMINISTRADOR...');
+    this.router.navigateByUrl('/admin/usuarios', { replaceUrl: true });
+    return;
+  }
 
     // ✅ Si no hay token/rol, fuera
     if (!role) {
@@ -56,7 +65,7 @@ export class HomePage implements OnInit {
         break;
 
       case 'ADMINISTRADOR':
-        this.router.navigateByUrl('/admin/dashboard', { replaceUrl: true });
+        this.router.navigateByUrl('/admin/usuarios', { replaceUrl: true });
         break;
 
       case 'BODEGA':

@@ -1,0 +1,45 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Gestión de Usuarios</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar 
+      (ionInput)="filterUsuarios($event)" 
+      placeholder="Buscar por nombre o rol">
+    </ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-item *ngFor="let user of usuariosFiltrados">
+    <ion-label>
+      <h2>{{ user.nombre_completo }}</h2>
+      <p>{{ user.email }}</p>
+      <ion-chip [color]="getRoleColor(user.rol)">
+        <ion-icon name="person-outline"></ion-icon>
+        <ion-label>{{ user.rol?.toUpperCase() }}</ion-label>
+      </ion-chip>
+    </ion-label>
+
+    <ion-buttons slot="end">
+      <ion-button color="primary" (click)="editarUsuario(user)">
+        <ion-icon slot="icon-only" name="create"></ion-icon>
+      </ion-button>
+      
+      <ion-button color="danger" (click)="confirmarEliminar(user.id)">
+        <ion-icon slot="icon-only" name="trash"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-item>
+  </ion-list>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="irACrear()" color="primary">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+    <ion-label style="margin-right: 15px; font-weight: bold; color: var(--ion-color-primary);">
+      Crear Usuario
+    </ion-label>
+  </ion-fab>
+</ion-content>

@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-
   // LOGIN
   {
     path: 'login',
@@ -22,49 +21,45 @@ export const routes: Routes = [
   // PYME
   // ======================
   {
-  path: 'pyme/dashboard',
-  loadComponent: () =>
-    import('./pages/pyme/dashboard/dashboard.page')
-      .then(m => m.DashboardPage),
+    path: 'pyme/dashboard',
+    loadComponent: () =>
+      import('./pages/pyme/dashboard/dashboard.page')
+        .then(m => m.DashboardPage),
   },
-
   {
-  path: 'pyme/orders',
-  loadComponent: () =>
-    import('./pages/pyme/orders/orders.page').then(m => m.OrdersPage),
+    path: 'pyme/orders',
+    loadComponent: () =>
+      import('./pages/pyme/orders/orders.page').then(m => m.OrdersPage),
   },
   /*
   {
-  path: 'pyme/orders/despachos',
-  loadComponent: () =>
-    import('./pages/pyme/orders/despachos/despachos.page').then(m => m.DespachosPage),
-  },
-
-  {
-  path: 'pyme/orders/despachos/crear',
-  loadComponent: () =>
-    import('./pages/pyme/orders/despachos/crear/crear-despacho.page').then(m => m.CrearDespachoPage),
+    path: 'pyme/orders/despachos',
+    loadComponent: () =>
+      import('./pages/pyme/orders/despachos/despachos.page').then(m => m.DespachosPage),
   },
   {
-  path: 'pyme/orders/despachos/:id',
-  loadComponent: () =>
-    import('./pages/pyme/orders/despachos/detalle/despacho-detalle.page').then(m => m.DetalleDespachoPage),
+    path: 'pyme/orders/despachos/crear',
+    loadComponent: () =>
+      import('./pages/pyme/orders/despachos/crear/crear-despacho.page').then(m => m.CrearDespachoPage),
+  },
+  {
+    path: 'pyme/orders/despachos/:id',
+    loadComponent: () =>
+      import('./pages/pyme/orders/despachos/detalle/despacho-detalle.page').then(m => m.DetalleDespachoPage),
   },
   */
   {
-  path: 'pyme/orders/retiros/crear',
-  loadComponent: () =>
-    import('./pages/pyme/orders/retiros/crear/crear-retiro.page').then(m => m.CrearRetiroPage),
+    path: 'pyme/orders/retiros/crear',
+    loadComponent: () =>
+      import('./pages/pyme/orders/retiros/crear/crear-retiro.page').then(m => m.CrearRetiroPage),
   },
   {
-  path: 'pyme/orders/retiros/:id',
-  loadComponent: () =>
-    import('./pages/pyme/orders/retiros/detalle/retiro-detalle.page').then(m => m.RetiroDetallePage),
+    path: 'pyme/orders/retiros/:id',
+    loadComponent: () =>
+      import('./pages/pyme/orders/retiros/detalle/retiro-detalle.page').then(m => m.RetiroDetallePage),
   },
-
-   {
-  
-    path: 'pyme/orders/retiros/:id', 
+  {
+    path: 'pyme/orders/retiros/:id',
     loadComponent: () => import('./pages/pyme/orders/retiros/detalle-retiro-historial/detalle-retiro-historial.page').then( m => m.DetalleRetiroHistorialPage)
   },
 
@@ -84,7 +79,6 @@ export const routes: Routes = [
         .then(m => m.PickingPage),
   },
 
-
   // ======================
   // TRANSPORTE
   // ======================
@@ -100,7 +94,7 @@ export const routes: Routes = [
       import('./pages/transporte/retiros/transporte-retiros.page')
         .then(m => m.TransporteRetirosPage),
   },
- /* {
+  /* {
     path: 'transporte/despachos',
     loadComponent: () =>
       import('./pages/transporte/despachos/despachos.page')
@@ -110,13 +104,20 @@ export const routes: Routes = [
   // ======================
   // ADMIN
   // ======================
-/*  {
-    path: 'admin/dashboard',
-    loadComponent: () =>
-      import('./pages/admin/dashboard/dashboard')
-        .then(m => m.DashboardPage),
+  {
+    path: '',
+    redirectTo: 'admin/usuarios',
+    pathMatch: 'full',
   },
-*/ 
+   {
+     path: 'admin/usuarios',
+     loadComponent: () => import('./pages/admin/usuarios/usuarios.page').then( m => m.UsuariosPage)
+   },
+   {
+     path: 'admin/crear-usuario',
+     loadComponent: () => import('./pages/admin/crear-usuario/crear-usuario.page').then( m => m.CrearUsuarioPage)
+   },
+
   // FALLBACK
   { path: '**', redirectTo: '' }
 ];

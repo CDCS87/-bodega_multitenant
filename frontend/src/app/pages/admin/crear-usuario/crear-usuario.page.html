@@ -1,0 +1,117 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/admin/usuarios"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ esEdicion ? 'Editar Usuario' : 'Nuevo Usuario' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="usuarioForm">
+    
+    <ion-item>
+      <ion-label position="stacked">Nombre Completo</ion-label>
+      <ion-input formControlName="nombre_completo" placeholder="EJ: JUAN PEREZ"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Correo Electrónico</ion-label>
+      <ion-input type="email" formControlName="email" placeholder="correo@ejemplo.com" [readonly]="esEdicion"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Contraseña {{ esEdicion ? '(Opcional)' : '' }}</ion-label>
+      <ion-input type="password" formControlName="password" placeholder="********"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Rol</ion-label>
+      <ion-select formControlName="rol" placeholder="Seleccione Rol" (ionChange)="onRolChange()">
+        <ion-select-option value="ADMINISTRADOR">ADMINISTRADOR</ion-select-option>
+        <ion-select-option value="PYME">PYME (CLIENTE)</ion-select-option>
+        <ion-select-option value="BODEGA">BODEGA</ion-select-option>
+        <ion-select-option value="TRANSPORTISTA">TRANSPORTISTA</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <div *ngIf="usuarioForm.get('rol')?.value === 'PYME'" formGroupName="pymeData" class="ion-margin-top">
+      <ion-list-header><ion-label color="primary">DATOS DE LA EMPRESA</ion-label></ion-list-header>
+      <ion-item>
+        <ion-label position="stacked">Razón Social</ion-label>
+        <ion-input formControlName="nombrePyme" placeholder="Empresa LTDA"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">RUT Empresa</ion-label>
+        <ion-input formControlName="rut" placeholder="77.888.999-7"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Dirección</ion-label>
+        <ion-input formControlName="direccionPyme" placeholder="Calle Falsa 123"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Comuna</ion-label>
+        <ion-input formControlName="comuna" placeholder="Santiago"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Volumen Contratado (m³)</ion-label>
+        <ion-input type="number" formControlName="volumenContratado" placeholder="Ej: 50.5"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Nombre del Contacto</ion-label>
+        <ion-input formControlName="contactoNombre" placeholder="Ej: Juan Perez"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Email del Contacto</ion-label>
+        <ion-input type="email" formControlName="contactoEmail" placeholder="contacto@empresa.com"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Teléfono de Contacto</ion-label>
+        <ion-input type="tel" formControlName="contactoTelefono" placeholder="+56912345678"></ion-input>
+      </ion-item>
+    </div>
+
+    <div *ngIf="usuarioForm.get('rol')?.value === 'TRANSPORTISTA'" formGroupName="transportistaData" class="ion-margin-top">
+      <ion-list-header>
+        <ion-label color="secondary">DATOS DEL TRANSPORTISTA</ion-label>
+      </ion-list-header>
+      <ion-item>
+        <ion-label position="stacked">RUT del Transportista</ion-label>
+        <ion-input formControlName="rut" placeholder="Ej: 12.345.678-9"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Patente del Vehículo</ion-label>
+        <ion-input formControlName="patenteVehiculo" placeholder="Ej: ABCD12" (ionInput)="usuarioForm.get('transportistaData.patenteVehiculo')?.setValue($any($event).target.value.toUpperCase())"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Capacidad de Carga (kg)</ion-label>
+        <ion-input type="number" formControlName="capacidadCarga" placeholder="Ej: 1500"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Zona Geográfica Asignada</ion-label>
+        <ion-select formControlName="zonaAsignadaId" placeholder="Seleccione una zona">
+          <ion-select-option *ngFor="let zona of zonas" [value]="zona?.id">
+            {{ zona?.nombre }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Turno Asignado</ion-label>
+        <ion-select formControlName="turno" placeholder="Seleccione Turno">
+        <ion-select-option value="MATUTINO">Mañana</ion-select-option>
+        <ion-select-option value="VESPERTINO">Tarde</ion-select-option>
+        <ion-select-option value="AMBOS">Ambas Jornadas (Todo el día)</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </div>
+
+  </form>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ion-toolbar class="ion-padding-horizontal">
+    <ion-button 
+    [disabled]="usuarioForm.invalid || !zonas || zonas.length === 0" 
+      (click)="guardar()" 
+      expand="block">
+        REGISTRAR EN SISTEMA
+</ion-button>
+  </ion-toolbar>
+</ion-footer>

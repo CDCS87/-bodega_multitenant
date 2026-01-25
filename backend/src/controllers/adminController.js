@@ -1,81 +1,135 @@
 const bcrypt = require('bcrypt');
-const User = require('../models/User');
+const { User, Pyme, Transportista,} = require('../models');
+const sequelize = require('../config/database');
+const Zona = require('../models/Zona');
 
-const VALID_ROLES = ['PYME', 'BODEGA', 'TRANSPORTISTA', 'ADMINISTRADOR'];
-
+/**
+ * CREAR USUARIO
+ */
 exports.createUser = async (req, res) => {
-  try {
-    const {
-      email,
-      password,
-      nombre_completo = null,
-      telefono = null,
-      rol,
-      pyme_id = null,
-      activo = true
-    } = req.body || {};
+    const t = await sequelize.transaction();
+    try {
+        const { email, password, nombre_completo, rol, pymeData, transportistaData, telefono } = req.body;
 
-    if (!email || !password || !rol) {
-      return res.status(400).json({ message: 'email, password y rol son obligatorios' });
+        const password_hash = await bcrypt.hash(String(password), 10);
+        const created = await User.create({
+            email: email.toLowerCase().trim(),
+            password_hash,
+            nombre_completo: nombre_completo ? nombre_completo.toUpperCase().trim() : null,
+            telefono: telefono || null,
+            rol: rol.toUpperCase(),
+            activo: true
+        }, { transaction: t });
+
+        if (rol.toUpperCase() === 'PYME' && pymeData) {
+            const nuevaPyme = await Pyme.create({
+                codigoPyme: `TEMP-${Date.now()}`,
+                nombrePyme: pymeData.nombrePyme.toUpperCase(),
+                rut: pymeData.rut,
+                direccionPyme: pymeData.direccionPyme,
+                comuna: pymeData.comuna,
+                contactoNombre: pymeData.contactoNombre.toUpperCase(),
+                contactoEmail: pymeData.contactoEmail.toLowerCase(),
+                contactoTelefono: pymeData.contactoTelefono,
+                volumenContratado: pymeData.volumenContratado || 0
+            }, { transaction: t });
+            
+            created.pyme_id = nuevaPyme.id;
+            await created.save({ transaction: t });
+        }
+
+        if (rol.toUpperCase() === 'TRANSPORTISTA' && transportistaData) {
+            await Transportista.create({
+                usuario_id: created.id,
+                rut: transportistaData.rut,
+                patenteVehiculo: transportistaData.patenteVehiculo.toUpperCase(),
+                capacidadCarga: transportistaData.capacidadCarga || 0,
+                // Forzamos mayúsculas para cumplir con el CHECK de la DB
+                turno: transportistaData.turno ? transportistaData.turno.toUpperCase() : 'MATUTINO',
+                zonaAsignadaId: transportistaData.zonaAsignadaId,
+                activo: true
+            }, { transaction: t });
+}
+
+        await t.commit();
+        return res.status(201).json({ ok: true, usuario: created });
+    } catch (e) {
+        await t.rollback();
+        console.error('ERROR:', e);
+        return res.status(500).json({ message: 'Error en el servidor', error: e.message });
     }
-
-    const emailClean = String(email).trim().toLowerCase();
-    const rolClean = String(rol).trim().toUpperCase();
-
-    if (!VALID_ROLES.includes(rolClean)) {
-      return res.status(400).json({ message: `rol inválido. Usa: ${VALID_ROLES.join(', ')}` });
-    }
-
-    // Si rol es PYME, pyme_id es obligatorio
-    let pymeIdFinal = null;
-    if (rolClean === 'PYME') {
-      const n = Number(pyme_id);
-      if (!Number.isInteger(n) || n <= 0) {
-        return res.status(400).json({ message: 'pyme_id es obligatorio para rol PYME' });
-      }
-      pymeIdFinal = n;
-    }
-
-    const exists = await User.findOne({ where: { email: emailClean } });
-    if (exists) return res.status(409).json({ message: 'Email ya existe' });
-
-    const password_hash = await bcrypt.hash(String(password), 10);
-
-    const created = await User.create({
-      email: emailClean,
-      password_hash,
-      nombre_completo,
-      telefono,
-      rol: rolClean,
-      pyme_id: pymeIdFinal,
-      activo: activo !== false
-    });
-
-    return res.json({
-      ok: true,
-      usuario: {
-        id: created.id,
-        email: created.email,
-        rol: created.rol,
-        pyme_id: created.pyme_id,
-        activo: created.activo
-      }
-    });
-  } catch (e) {
-    console.error('createUser error:', e);
-    return res.status(500).json({ message: 'Error creando usuario' });
-  }
 };
 
+/**
+ * ACTUALIZAR USUARIO 
+ */
+exports.updateUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { email, nombre_completo, rol, telefono, password } = req.body;
+        
+        const usuario = await User.findByPk(id);
+        if (!usuario) return res.status(404).json({ message: 'Usuario no encontrado' });
+
+        usuario.email = email.toLowerCase().trim();
+        usuario.nombre_completo = nombre_completo ? nombre_completo.toUpperCase().trim() : usuario.nombre_completo;
+        usuario.rol = rol.toUpperCase();
+        usuario.telefono = telefono || usuario.telefono;
+
+        if (password && password.trim() !== '') {
+            usuario.password_hash = await bcrypt.hash(String(password), 10);
+        }
+
+        await usuario.save();
+        return res.json({ ok: true, message: 'Actualizado' });
+    } catch (e) {
+        console.error('ERROR AL ACTUALIZAR:', e);
+        return res.status(500).json({ message: 'Error al actualizar' });
+    }
+};
+
+/**
+ * LISTAR USUARIOS
+ */
 exports.listUsers = async (req, res) => {
-  try {
-    const rows = await User.findAll({
-      attributes: ['id', 'email', 'nombre_completo', 'telefono', 'rol', 'pyme_id', 'activo', 'fecha_creacion'],
-      order: [['id', 'DESC']]
-    });
-    return res.json({ ok: true, usuarios: rows });
-  } catch (e) {
-    console.error('listUsers error:', e);
-    return res.status(500).json({ message: 'Error listando usuarios' });
-  }
+    try {
+        const usuarios = await User.findAll({
+            attributes: ['id', 'email', 'nombre_completo', 'rol', 'activo', 'pyme_id'],
+            order: [['id', 'ASC']]
+        });
+        return res.json(usuarios);
+    } catch (error) {
+        console.error('ERROR AL LISTAR:', error);
+        return res.status(500).json({ message: 'Error al obtener usuarios' });
+    }
+};
+
+/**
+ * ELIMINAR USUARIO
+ */
+exports.deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await User.destroy({ where: { id } });
+        return res.json({ ok: true, message: 'Eliminado' });
+    } catch (e) {
+        console.error('ERROR AL ELIMINAR:', e);
+        return res.status(500).json({ message: 'Error al eliminar' });
+    }
+};
+
+// Obtener lista de zonas para los selectores
+exports.listZonas = async (req, res) => {
+    try {
+        // Al usar el modelo Zona que arreglamos, Sequelize ya sabe 
+        // que debe buscar en 'zonas_geograficas'
+        const zonas = await Zona.findAll({
+            where: { activo: true },
+            order: [['nombre', 'ASC']]
+        }); 
+        return res.status(200).json(zonas); 
+    } catch (e) {
+        console.error('ERROR AL LISTAR ZONAS:', e);
+        return res.status(500).json({ message: 'Error al obtener zonas desde la DB' });
+    }
 };
