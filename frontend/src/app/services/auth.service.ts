@@ -41,7 +41,7 @@ export class AuthService {
   // Timer para renovar token automáticamente
   private refreshTimer: any;
 
-  // ✅ NUEVO: Timer para control de inactividad humana
+  // Timer para control de inactividad humana
   private inactivityTimer: any;
   private readonly INACTIVITY_TIME = 10 * 60 * 1000; // 10 Minutos exactos
 
@@ -53,7 +53,7 @@ export class AuthService {
     // Iniciar renovación automática si hay sesión activa
     if (this.isLoggedIn()) {
       this.scheduleTokenRefresh();
-      this.startInactivityMonitoring(); // ✅ Inicia monitoreo al refrescar la app
+      this.startInactivityMonitoring(); // Inicia monitoreo al refrescar la app
     }
   }
 
@@ -73,24 +73,24 @@ export class AuthService {
           
           this.authState.next(true);
 
-          // ✅ Programar renovación automática del token
+          //  Programar renovación automática del token
           this.scheduleTokenRefresh();
           
-          // ✅ NUEVO: Iniciar monitoreo de inactividad tras login exitoso
+          //  NUEVO: Iniciar monitoreo de inactividad tras login exitoso
           this.startInactivityMonitoring();
 
-          console.log('✅ Login exitoso');
+          console.log(' Login exitoso');
         }
       }),
       catchError((error) => {
-        console.error('❌ Error en login:', error);
+        console.error(' Error en login:', error);
         return throwError(() => error);
       })
     );
   }
 
   /**
-   * ✅ NUEVO: INICIAR MONITOREO DE INACTIVIDAD SELECTIVO
+   *  NUEVO: INICIAR MONITOREO DE INACTIVIDAD SELECTIVO
    * Aplica para ADMIN, PYME y BODEGA. TRANSPORTISTA queda fuera.
    */
   private startInactivityMonitoring(): void {
@@ -116,7 +116,7 @@ export class AuthService {
   }
 
   /**
-   * ✅ NUEVO: RESETEAR EL RELOJ DE INACTIVIDAD
+   *  NUEVO: RESETEAR EL RELOJ DE INACTIVIDAD
    */
   private resetInactivityTimer(): void {
     if (this.inactivityTimer) {
@@ -131,7 +131,7 @@ export class AuthService {
   }
 
   /**
-   * ✅ NUEVO: DETENER EL RELOJ
+   *  NUEVO: DETENER EL RELOJ
    */
   private stopInactivityTimer(): void {
     if (this.inactivityTimer) {
@@ -212,7 +212,7 @@ export class AuthService {
       clearTimeout(this.refreshTimer);
     }
 
-    // ✅ NUEVO: Limpiar timer de inactividad al cerrar sesión
+    //  NUEVO: Limpiar timer de inactividad al cerrar sesión
     this.stopInactivityTimer();
 
     this.authState.next(false);

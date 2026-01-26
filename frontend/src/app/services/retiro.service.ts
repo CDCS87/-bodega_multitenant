@@ -1,32 +1,29 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
+import { environment } from '../../environments/environment'; 
 @Injectable({
   providedIn: 'root'
 })
 export class RetiroService {
   
-  // 🔴 AQUÍ ESTÁ LA CLAVE: Forzamos la ruta completa con /api
-  private baseUrl = 'http://localhost:3000/api/retiros';
+
+  private baseUrl = `${environment.apiUrl}/api/retiros`; 
 
   constructor(private http: HttpClient) { }
 
   // 1. CREAR RETIRO
-  // Esto generará: http://localhost:3000/api/retiros/crear
   crearRetiro(data: any): Observable<any> {
-    console.log('📡 Enviando a:', `${this.baseUrl}/crear`); // Chivato para consola
+    console.log('📡 Enviando petición a:', `${this.baseUrl}/crear`); 
     return this.http.post(`${this.baseUrl}/crear`, data);
   }
 
   // 2. OBTENER HISTORIAL
-  // Esto generará: http://localhost:3000/api/retiros/mis-retiros
   getMyRetiros(): Observable<any> {
     return this.http.get(`${this.baseUrl}/mis-retiros`);
   }
 
   // 3. OBTENER DETALLE (Por ID)
-  // Esto generará: http://localhost:3000/api/retiros/123
   getRetiroById(id: number): Observable<any> {
     return this.http.get(`${this.baseUrl}/${id}`);
   }
